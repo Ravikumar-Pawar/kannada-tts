@@ -1,0 +1,14 @@
+{
+    "model": "hifigan",
+    "run_name": "kannada_hifigan",
+    "epochs": 200,
+    "batch_size": 16,
+    "eval_batch_size": 8,
+    "num_loader_workers": 4,
+    "audio": {
+        "sample_rate": 22050,
+        "hop_length": 256
+    },
+    "lr": 0.0002,
+    "save_step": 5000
+}
