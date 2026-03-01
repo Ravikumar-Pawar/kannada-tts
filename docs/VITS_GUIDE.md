@@ -6,6 +6,18 @@ OVERVIEW
 VITS (Variational Inference Text-to-Speech) is a state-of-the-art end-to-end TTS system
 using Variational Autoencoders (VAE) for improved audio quality and variability control.
 
+```mermaid
+flowchart TD
+    Text["Text Input"]
+    Encode["Text Encoder"]
+    Dur["Duration Predictor"]
+    Sample["Latent Sampling (z ~ N(0,I))"]
+    Gen["Generator"]
+    Mel["Mel-Spectrogram"]
+    Voc["Vocoder"]
+    Text --> Encode --> Dur --> Sample --> Gen --> Mel --> Voc
+```
+
 ARCHITECTURE COMPONENTS
 =======================
 
@@ -233,8 +245,12 @@ Slow Inference:
   - Consider quantization
   - Use TorchScript export
 
-PERFORMANCE METRICS
-===================
+PERFORMANCE METRICS (Hybrid vs Non‑Hybrid)
+===========================================
+
+The following metrics compare the VITS hybrid pipeline against a
+traditional Tacotron2 (non-hybrid) baseline on Kannada data. Details and
+diagrams appear in the top-level README and objectives report.
 
 MCD (Mel-Cepstral Distortion):
   Measures perceptual distance between spectrograms

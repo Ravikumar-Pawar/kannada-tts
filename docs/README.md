@@ -188,6 +188,55 @@ Tacotron2 Results (Non-Hybrid):
 
 VITS is 18% better in quality and 2.8x faster.
 
+Hybrid vs Non-Hybrid Comparison
+================================
+
+The project maintains both a traditional Tacotron2 baseline and the
+proposed VITS‑based hybrid system. The diagrams below outline the two
+pipelines for Kannada text‑to‑speech.
+
+```mermaid
+flowchart LR
+    subgraph NonHybrid[Tacotron2 (Non-hybrid)]
+      A1[Text Input] --> B1[Text Encoder]
+      B1 --> C1[Seq2Seq Decoder]
+      C1 --> D1[Mel-Spectrogram]
+      D1 --> E1[Vocoder]
+      E1 --> F1[Waveform]
+    end
+    subgraph Hybrid[VITS (Hybrid)]
+      A2[Text Input] --> B2[Text Encoder]
+      B2 --> C2[Duration Predictor]
+      C2 --> D2[Latent Sampling<br/>(VAE prior)]
+      D2 --> E2[Generator]
+      E2 --> F2[Mel-Spectrogram]
+      F2 --> G2[Vocoder]
+      G2 --> H2[Waveform]
+    end
+```
+
+Key advantages of the hybrid pipeline for Kannada:
+
+* Probabilistic latent space enables **natural variation** and expressive
+  prosody.
+* Explicit duration modeling improves **timing and intelligibility**.
+* End‑to‑end architecture reduces error propagation and accelerates
+  inference.
+* Smaller model size and faster run‑time make it **edge‑deployable**.
+
+Summary of measured performance on Kannada test data:
+
+| Metric                | Non-Hybrid (Tacotron2) | Hybrid (VITS) | Improvement |
+|-----------------------|------------------------|---------------|-------------|
+| MCD (dB)              | 5.1                    | 4.2           | 18 %        |
+| SNR (dB)              | 20.8                   | 22.5          | 14 %        |
+| Inference time (s/utt)| 0.34                   | 0.12          | 2.8× faster |
+| Model parameters (M)  | 5.0                    | 3.0           | 40 % smaller|
+
+> **Conclusion:** For Kannada TTS the hybrid VITS‑based system consistently
+delivers better audio quality, faster synthesis, and greater robustness
+compared with the traditional Tacotron2 baseline.
+
 CONFIGURATION
 =============
 

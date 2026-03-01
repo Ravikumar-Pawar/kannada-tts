@@ -197,6 +197,34 @@ Model Efficiency:
 Conclusion: VITS selected for hybrid approach provides superior quality,
 speed, and efficiency for Kannada TTS.
 
+The following flowchart contrasts the two pipelines to make the
+difference explicit:
+
+```mermaid
+flowchart LR
+    subgraph NonHybrid[Tacotron2]
+      A1[Text Input] --> B1[Encoder]
+      B1 --> C1[Seq2Seq Decoder]
+      C1 --> D1[Mel]
+      D1 --> E1[Vocoder]
+      E1 --> F1[Waveform]
+    end
+    subgraph Hybrid[VITS]
+      A2[Text Input] --> B2[Encoder]
+      B2 --> C2[Duration Predictor]
+      C2 --> D2[Latent Sampling]
+      D2 --> E2[Generator]
+      E2 --> F2[Mel]
+      F2 --> G2[Vocoder]
+      G2 --> H2[Waveform]
+    end
+```
+
+This visual emphasises that the hybrid approach includes a
+variational latent space and explicit duration modelling, which together
+yield greater robustness and expressive control for Kannada speech
+synthesis.
+
 ================================================================================
 OBJECTIVE 2: ADVANCED NOISE REDUCTION & EMOTION-ENHANCED SPEECH GENERATION
 ================================================================================
