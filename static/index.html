@@ -455,6 +455,12 @@
                 <span class="badge">⚡ Real-time Inference</span>
                 <span class="badge">📊 Live Metrics</span>
             </div>
+            <div id="modelStatus" style="margin-top:12px;">
+                <span class="badge" id="hybridStatus">Hybrid: unknown</span>
+                <span class="badge" id="nonHybridStatus">Non-hybrid: unknown</span>
+                <button class="button small" style="vertical-align: middle; margin-left:10px;"
+                    onclick="refreshModelStatus()">Refresh</button>
+            </div>
         </div>
 
         <!-- Main Content -->
@@ -802,6 +808,34 @@
             }
         }
 
+        // Refresh model cached status and update header badges
+        async function refreshModelStatus() {
+            try {
+                const resp = await fetch(`${API_BASE}/models/list`, { method: 'POST' });
+                if (!resp.ok) return;
+                const data = await resp.json();
+                const hybrid = data.available_models.find(m => m.approach === 'hybrid');
+                const nonHybrid = data.available_models.find(m => m.approach === 'non_hybrid');
+                document.getElementById('hybridStatus').textContent = `Hybrid: ${hybrid.cached ? 'cached' : 'not cached'}`;
+                document.getElementById('nonHybridStatus').textContent = `Non-hybrid: ${nonHybrid.cached ? 'cached' : 'not cached'}`;
+            } catch (e) {
+                console.warn('Could not refresh model status', e);
+            }
+        }
+
+        // Toggle emotion selector availability based on chosen approach
+        document.getElementById('approachSelect').addEventListener('change', (e) => {
+            const approach = e.target.value;
+            const emo = document.getElementById('emotionSelect');
+            if (approach === 'hybrid') {
+                emo.disabled = false;
+                emo.parentElement.style.opacity = '1';
+            } else {
+                emo.disabled = true;
+                emo.parentElement.style.opacity = '0.6';
+            }
+        });
+
         // Compare approaches
         async function compareApproaches() {
             const text = document.getElementById('compareTextInput').value;
@@ -939,6 +973,9 @@
         window.addEventListener('load', () => {
             document.getElementById('textInput').value = 'ನಮಸ್ಕಾರ, ಕನ್ನಡ ವಾಕ್ ಸಂಶ್ಲೇಷಣಾ ವ್ಯವಸ್ಥೆಗೆ ಸ್ವಾಗತ';
             document.getElementById('compareTextInput').value = 'ನಮಸ್ಕಾರ, ಕನ್ನಡ ವಾಕ್ ಸಂಶ್ಲೇಷಣಾ ವ್ಯವಸ್ಥೆಗೆ ಸ್ವಾಗತ';
+            // refresh model cache badges and set initial UI state
+            refreshModelStatus();
+            document.getElementById('approachSelect').dispatchEvent(new Event('change'));
         });
     </script>
 </body>

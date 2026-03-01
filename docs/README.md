@@ -20,104 +20,39 @@ QUICK START
 DOCUMENTATION STRUCTURE
 =======================
 
-The documentation is divided into several focused guides. Start with the **Quick Start** above and then follow the links below for more in‑depth information.
+The documentation has been reorganized into topic‑specific subdirectories.  Use
+this page as an entry point—the detailed content lives in the folders listed
+below.
 
-* [Terminology](TERMINOLOGY.md) – Definitions of core concepts used throughout the project
-* [VITS Guide](VITS_GUIDE.md) – Detailed architecture description and training/inference procedures
-* [API Reference](API_REFERENCE.md) – Class, method and configuration documentation generated from the source code
-* [Configuration Guide](CONFIG_GUIDE.md) – Explanation of configuration files and tuning tips
-* [Objectives & Implementation](OBJECTIVES_IMPLEMENTATION.md) – Background, goals and compliance report (optional reading)
+### Guides
 
-FILE ORGANIZATION OVERVIEW
-==========================
+* [VITS Architecture & Training](guides/VITS_GUIDE.md)
+* [Configuration Guide](guides/CONFIG_GUIDE.md)
 
-src/
-  hybrid/               - VITS-based hybrid approach
-    models/
-      vits_model.py    - VITS architecture (TextEncoder, PosteriorEncoder, Generator, DurationPredictor)
-      vocoder_hybrid.py
-    vits_inference.py  - End-to-end inference engine
-    vits_training.py   - Training pipeline with VAE losses
-    processors/        - Audio processing (noise reduction, prosody enhancement, post-processing)
-  
-  non_hybrid/          - Standard Tacotron2 baseline
-    models/
-      tacotron2_model.py
-      vocoder_model.py
-    inference.py       - StandardInference class
-    training.py        - StandardTrainer class
-  
-  inference_unified.py - Unified inference interface for both approaches
-  training_unified.py  - Unified training interface for both approaches
-  examples.py          - 9 working examples
-  run_tts.py           - Command-line interface
+### Reference
 
-config/
-  tacotron2.json       - Tacotron2 configuration
-  hifigan.json         - HiFiGAN configuration
+* [API Reference](reference/API_REFERENCE.md)
 
-VITS MODEL COMPONENTS
-=====================
+### Concepts
 
-TextEncoder
-  Input: Kannada character sequences (132 characters)
-  Output: Hidden representation (192 dimensions)
-  Architecture: Embedding -> Conv layers -> BiLSTM -> Projection
+* [Terminology](concepts/TERMINOLOGY.md)
 
-PosteriorEncoder
-  Input: Mel-spectrogram (80 channels)
-  Output: Latent distribution (mean, logstd)
-  Purpose: Learn latent space for variational inference
+### Objectives
 
-DurationPredictor
-  Input: Text-encoded representation
-  Output: Phoneme durations
-  Purpose: Align text to mel-spectrogram
+* [Objectives & Implementation](objectives/OBJECTIVES_IMPLEMENTATION.md)
 
-Generator
-  Input: Latent codes
-  Output: Mel-spectrogram (80 channels)
-  Architecture: Linear projection -> Residual blocks -> Upsampling
+### Supplementary Texts
 
-TRAINING
-========
+Additional notes and reports are stored in the `texts/` directory. They are
+mainly for archival purposes and are not required reading.
 
-Loss Function:
-  Total = 45 * mel_loss + 1 * kl_loss + 0.1 * duration_loss
+The remainder of this README previously contained extensive architecture,
+training, and CLI examples; those have been migrated into the appropriate
+guides listed above.
 
-Mel Loss: L1 distance between predicted and target mel-spectrograms
-KL Loss: KL divergence between posterior and prior distributions
-Duration Loss: MSE between predicted and actual phoneme durations
-
-Optimization:
-  Optimizer: Adam (lr=1e-4)
-  Scheduler: Exponential decay (gamma=0.99)
-  Gradient Clipping: max_norm=1.0
-  Batch Size: 16
-
-INFERENCE
-=========
-
-Basic Inference:
-  inference = VITSInference(vits_model)
-  audio = inference.synthesize("ನಮಸ್ಕಾರ")
-
-With Options:
-  audio = inference.synthesize(
-    text="ನಮಸ್ಕಾರ",
-    temperature=0.667,     # Control variability
-    emotion="happy",       # Emotion type (neutral, happy, sad, angry, calm)
-    post_processing="advanced"  # Processing mode (none, basic, advanced)
-  )
-
-Batch Processing:
-  texts = ["ನಮಸ್ಕಾರ", "ಧನ್ಯವಾದ", "ಹಾಯ್"]
-  audios = inference.synthesize_batch(texts)
-
-AUDIO PROCESSING
-================
-
-Three main processors:
+<!-- the rest of this file contained detailed architecture and usage notes
+    that were moved into the guides; they are omitted here to keep the index
+    focused. -->
 
 1. NoiseReductionProcessor
    - Spectral gating

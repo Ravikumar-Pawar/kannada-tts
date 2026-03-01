@@ -128,9 +128,15 @@ src/
 
 docs/
   README.md             - Documentation hub (start here)
-  VITS_GUIDE.md         - Architecture and training guide
-  API_REFERENCE.md      - Complete API documentation
-  CONFIG_GUIDE.md       - Configuration reference
+  guides/               - Long form guides (architecture, configuration)
+    VITS_GUIDE.md       - Architecture and training guide (moved to docs/guides)
+    CONFIG_GUIDE.md     - Configuration reference (moved to docs/guides)
+  reference/            - API and generated reference material
+    API_REFERENCE.md    - Complete API documentation (moved to docs/reference)
+  concepts/             - Terminology and core concepts
+    TERMINOLOGY.md      - Definitions used across the project (moved to docs/concepts)
+  objectives/           - Project objectives and implementation mapping
+    OBJECTIVES_IMPLEMENTATION.md - Goals and verification (moved to docs/objectives)
 
 config/
   tacotron2.json        - Tacotron2 configuration
@@ -256,11 +262,11 @@ Web Application & Deployment:
   * [docs/README.md](docs/README.md) – Full documentation hub
 
 Technical Guides:
-  * [Terminology](docs/TERMINOLOGY.md) – Basic terms and concepts
-  * [VITS Guide](docs/VITS_GUIDE.md) – Architecture design and training/inference walkthrough
-  * [API Reference](docs/API_REFERENCE.md) – Auto-generated details for all public classes/functions
-  * [Configuration Guide](docs/CONFIG_GUIDE.md) – Hyperparameters, JSON formats, and tuning tips
-  * [Objectives & Implementation](docs/OBJECTIVES_IMPLEMENTATION.md) – Background, goals and compliance report
+  * [Terminology](docs/concepts/TERMINOLOGY.md) – Basic terms and concepts
+  * [VITS Guide](docs/guides/VITS_GUIDE.md) – Architecture design and training/inference walkthrough
+  * [API Reference](docs/reference/API_REFERENCE.md) – Auto-generated details for all public classes/functions
+  * [Configuration Guide](docs/guides/CONFIG_GUIDE.md) – Hyperparameters, JSON formats, and tuning tips
+  * [Objectives & Implementation](docs/objectives/OBJECTIVES_IMPLEMENTATION.md) – Background, goals and compliance report
 
 Supplementary Texts:
   * [Implementation Complete](docs/texts/IMPLEMENTATION_COMPLETE.txt) – checklist of completed features
@@ -298,9 +304,9 @@ Documentation:
   - Web App: WEB_APP_README.md
   - Setup Guide: SETUP.md
   - Custom Models: CUSTOM_MODELS.md
-  - Architecture: docs/VITS_GUIDE.md
-  - API Reference: docs/API_REFERENCE.md
-  - Configuration: docs/CONFIG_GUIDE.md
+  - Architecture: docs/guides/VITS_GUIDE.md
+  - API Reference: docs/reference/API_REFERENCE.md
+  - Configuration: docs/guides/CONFIG_GUIDE.md
 
 TROUBLESHOOTING
 ===============
