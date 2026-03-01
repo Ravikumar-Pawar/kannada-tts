@@ -33,11 +33,20 @@ class TTSInference:
         self.device = device
         
         if self.approach == "hybrid":
-            from src.hybrid.inference import HybridInference
-            self.inference = HybridInference(
-                tacotron2_model, vocoder_model, character_mapping, device
-            )
-            logger.info("Using HYBRID approach for inference")
+            # "Hybrid" in the web UI refers to VITS; could be HF pretrained
+            # object returned from ModelManager is a dict when hf model.
+            if isinstance(tacotron2_model, dict) and tacotron2_model.get('hf'):
+                from src.hybrid.hf_inference import HFVITSInference
+                self.inference = HFVITSInference(
+                    tacotron2_model['model'], tacotron2_model['tokenizer'], device
+                )
+                logger.info("Using HuggingFace VITS (hybrid) inference")
+            else:
+                from src.hybrid.vits_inference import VITSInference
+                self.inference = VITSInference(
+                    tacotron2_model, character_mapping, device
+                )
+                logger.info("Using VITS (hybrid) approach for inference")
         elif self.approach == "non_hybrid":
             from src.non_hybrid.inference import StandardInference
             self.inference = StandardInference(
@@ -59,11 +68,12 @@ class TTSInference:
             Audio waveform
         """
         if self.approach == "hybrid":
+            # VITSInference expects emotion/post_processing additionally
             return self.inference.synthesize(
                 text,
                 emotion=kwargs.get("emotion", "neutral"),
                 post_processing=kwargs.get("post_processing", "advanced"),
-                **{k: v for k, v in kwargs.items() 
+                **{k: v for k, v in kwargs.items()
                    if k not in ["emotion", "post_processing"]}
             )
         else:

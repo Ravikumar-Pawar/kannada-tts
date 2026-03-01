@@ -39,17 +39,18 @@ class VITSInference:
         logger.info(f"VITSInference initialized on {device}")
     
     def _get_default_kannada_mapping(self) -> dict:
-        """Get default Kannada character mapping"""
-        kannada_chars = [
-            'ಅ', 'ಆ', 'ಇ', 'ಈ', 'ಉ', 'ಊ', 'ಋ', 'ಌ', 'ಎ', 'ಏ', 
-            'ಐ', 'ಒ', 'ಓ', 'ಔ', 'ಘ', 'ಙ', 'ಚ', 'ಛ', 'ಜ', 'ಝ',
-            'ಞ', 'ಟ', 'ಠ', 'ಡ', 'ಢ', 'ಣ', 'ತ', 'ಥ', 'ದ', 'ಧ',
-            'ನ', 'ಪ', 'ಫ', 'ಬ', 'ಭ', 'ಮ', 'ಯ', 'ರ', 'ಲ', 'ವ',
-            'ಶ', 'ಷ', 'ಸ', 'ಹ', 'ಾ', 'ಿ', 'ೀ', 'ುೂ', 'ೃ', 'ೆ',
-            'ೇ', 'ೈ', 'ೊ', 'ೋ', 'ೌ', 'ೃ', 'ಂ', 'ಃ', '|', ' ',
-            '-', '?', '.', ',', '!', ':', ';', '(', ')', '[', ']'
-        ]
-        return {char: idx for idx, char in enumerate(kannada_chars)}
+        """Dynamically build a mapping covering the Kannada unicode block.
+        This ensures even complex syllables and diacritics are mapped so
+        no characters are left unhandled during inference.
+        """
+        mapping = {}
+        for code in range(0x0C80, 0x0CFF + 1):
+            ch = chr(code)
+            mapping[ch] = len(mapping)
+        for ch in [' ', '-', '?', '.', ',', '!', ':', ';', '(', ')', '[', ']', '|']:
+            if ch not in mapping:
+                mapping[ch] = len(mapping)
+        return mapping
     
     def text_to_sequence(self, text: str) -> Tuple[torch.Tensor, torch.Tensor]:
         """
@@ -102,6 +103,10 @@ class VITSInference:
             outputs = self.vits(sequence, length, mels=None)
             
             mel_output = outputs['mel_output']  # (batch, mel_length, mel_channels)
+            # guard against empty mel
+            if mel_output.numel() == 0 or mel_output.size(1) == 0:
+                logger.warning("VITS produced empty mel; returning silence")
+                return np.zeros(16000, dtype=np.float32)
             
             # Post-process mel spectrogram
             mel_output = mel_output.squeeze(0).cpu().numpy()  # (mel_length, mel_channels)

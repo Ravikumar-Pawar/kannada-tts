@@ -26,8 +26,16 @@ class StandardInference:
             character_mapping: Character to index mapping
             device: Device to use
         """
+        if tacotron2_model is None:
+            raise ValueError("tacotron2_model must be provided for StandardInference")
         self.tacotron2 = tacotron2_model.to(device).eval()
-        self.vocoder = vocoder_model.to(device).eval()
+
+        # vocoder may be optional; fall back to Griffin-Lim if missing
+        if vocoder_model is None:
+            self.vocoder = None
+            logger.warning("No vocoder provided to StandardInference — using Griffin-Lim fallback")
+        else:
+            self.vocoder = vocoder_model.to(device).eval()
         self.device = device
         self.sample_rate = 22050
         
@@ -40,17 +48,17 @@ class StandardInference:
         logger.info(f"StandardInference initialized on {device}")
     
     def _get_default_kannada_mapping(self) -> dict:
-        """Get default Kannada character mapping"""
-        kannada_chars = [
-            'ಅ', 'ಆ', 'ಇ', 'ಈ', 'ಉ', 'ಊ', 'ಋ', 'ಌ', 'ಎ', 'ಏ', 
-            'ಐ', 'ಒ', 'ಓ', 'ಔ', 'ಘ', 'ಙ', 'ಚ', 'ಛ', 'ಜ', 'ಝ',
-            'ಞ', 'ಟ', 'ಠ', 'ಡ', 'ಢ', 'ಣ', 'ತ', 'ಥ', 'ದ', 'ಧ',
-            'ನ', 'ಪ', 'ಫ', 'ಬ', 'ಭ', 'ಮ', 'ಯ', 'ರ', 'ಲ', 'ವ',
-            'ಶ', 'ಷ', 'ಸ', 'ಹ', 'ಾ', 'ಿ', 'ೀ', 'ುೂ', 'ೃ', 'ೆ',
-            'ೇ', 'ೈ', 'ೊ', 'ೋ', 'ೌ', 'ೃ', 'ಂ', 'ಃ', '|', ' ',
-            '-', '?', '.', ',', '!', ':', ';', '(', ')', '[', ']'
-        ]
-        return {char: idx for idx, char in enumerate(kannada_chars)}
+        """Dynamically build a mapping covering the Kannada unicode block.
+        Ensures all common characters and diacritics are included.
+        """
+        mapping = {}
+        for code in range(0x0C80, 0x0CFF + 1):
+            ch = chr(code)
+            mapping[ch] = len(mapping)
+        for ch in [' ', '-', '?', '.', ',', '!', ':', ';', '(', ')', '[', ']', '|']:
+            if ch not in mapping:
+                mapping[ch] = len(mapping)
+        return mapping
     
     def text_to_sequence(self, text: str) -> Tuple[torch.Tensor, torch.Tensor]:
         """
@@ -108,11 +116,26 @@ class StandardInference:
                 stop_idx = gate_positions[0].item() + 1
                 mel_outputs = mel_outputs[:, :stop_idx, :]
             
-            # Generate audio from mel
-            audio = self.vocoder(mel_outputs)
+            # guard against empty mel
+            if mel_outputs.numel() == 0 or mel_outputs.size(1) == 0:
+                logger.warning("Tacotron2 produced empty mel; returning silence")
+                return np.zeros(16000, dtype=np.float32)
             
-            # Convert to numpy
-            audio = audio.squeeze(0).cpu().numpy()
+            # Generate audio from mel using vocoder if available
+            if self.vocoder is not None:
+                audio = self.vocoder(mel_outputs)
+                audio = audio.squeeze(0).cpu().numpy()
+            else:
+                try:
+                    import librosa
+                    mel = mel_outputs.squeeze(0).cpu().numpy().T
+                    audio = librosa.feature.inverse.mel_to_audio(
+                        mel, sr=self.sample_rate, n_fft=2048, hop_length=256
+                    )
+                    audio = audio.astype(np.float32)
+                except Exception:
+                    logger.exception("Griffin-Lim fallback failed; returning silence")
+                    audio = np.zeros(16000, dtype=np.float32)
             
             logger.info(f"Generated audio shape: {audio.shape}")
         

@@ -6,6 +6,7 @@ VITS Production Implementation - Version 2.0
 
 * [Overview](#overview)
 * [Quick Start](#quick-start)
+* [Web Application](#web-application-new)
 * [System Requirements](#system-requirements)
 * [Directory Structure](#directory-structure)
 * [Performance](#performance)
@@ -16,7 +17,9 @@ VITS Production Implementation - Version 2.0
 * [Getting Help](#getting-help)
 * [Troubleshooting](#troubleshooting)
 
-OVERVIEW
+> **🚀 NEW: Try the web application!** See [QUICKSTART.md](QUICKSTART.md) for 30-second setup.
+
+## Overview
 ========
 
 Production-ready Kannada Text-to-Speech system based on **VITS** (Variational
@@ -71,6 +74,27 @@ QUICK START
 
 4. See Documentation
    Read docs/README.md for complete guide
+
+WEB APPLICATION (NEW!)
+======================
+
+Try the interactive web interface with side-by-side comparison:
+
+1. **Start the server:**
+   python run_app.py
+
+2. **Open in browser:**
+   http://localhost:8000
+
+3. **Features:**
+   • 🎙️ Single synthesis with emotion control (Hybrid only)
+   • ⚙️ Model variant selector (default vs pre-trained Kannada) for each approach
+   • ⚖️ Side-by-side comparison of approaches
+   • 📊 Real-time performance metrics
+   • 🚀 Live baseline comparisons
+   • 🎨 Beautiful, responsive UI
+
+See [WEB_APP_README.md](WEB_APP_README.md) for detailed web app documentation.
 
 SYSTEM REQUIREMENTS
 ===================
@@ -220,15 +244,23 @@ Inference:
 DOCUMENTATION
 ==============
 
-Start Here:
-  * [docs/README.md](docs/README.md) – Documentation hub and quick start
+Start Here (Choose Your Path):
+  * **[QUICKSTART.md](QUICKSTART.md)** ⭐ – 30-second setup for web app
+  * [README.md](README.md) – Full project overview
+  * [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) – What was built and how to use it
 
-Core Guides:
+Web Application & Deployment:
+  * [WEB_APP_README.md](WEB_APP_README.md) – Web app features and API usage
+  * [SETUP.md](SETUP.md) – Installation and deployment guide
+  * [CUSTOM_MODELS.md](CUSTOM_MODELS.md) – Integrating your own trained models
+  * [docs/README.md](docs/README.md) – Full documentation hub
+
+Technical Guides:
   * [Terminology](docs/TERMINOLOGY.md) – Basic terms and concepts
   * [VITS Guide](docs/VITS_GUIDE.md) – Architecture design and training/inference walkthrough
   * [API Reference](docs/API_REFERENCE.md) – Auto-generated details for all public classes/functions
   * [Configuration Guide](docs/CONFIG_GUIDE.md) – Hyperparameters, JSON formats, and tuning tips
-  * [Objectives & Implementation](docs/OBJECTIVES_IMPLEMENTATION.md) – Background, goals and compliance report (optional)
+  * [Objectives & Implementation](docs/OBJECTIVES_IMPLEMENTATION.md) – Background, goals and compliance report
 
 Supplementary Texts:
   * [Implementation Complete](docs/texts/IMPLEMENTATION_COMPLETE.txt) – checklist of completed features
@@ -241,13 +273,31 @@ Each document contains links to other sections when relevant; use the hub page
 GETTING HELP
 ============
 
-System Information:
-  - Source Code: src/hybrid/models/vits_model.py
-  - Examples: python examples.py
-  - CLI Help: python run_tts.py --help
+Start Here:
+  - Implementation Summary: IMPLEMENTATION_SUMMARY.md
+  - Setup & Deployment: SETUP.md
+  - Validation script: python validate_setup.py
+
+Web Application:
+  - Start: python run_app.py
+  - Interface: http://localhost:8000
+  - API Docs: http://localhost:8000/docs
+  - Guide: WEB_APP_README.md
+
+Custom Models:
+  - Integration guide: CUSTOM_MODELS.md
+  - Model caching: ~/.cache/kannada_tts/
+
+Python API:
+  - Quick examples: python examples.py
+  - Source code: src/hybrid/models/vits_model.py
+  - CLI interface: python run_tts.py --help
 
 Documentation:
-  - Quick Start: docs/README.md
+  - Overview: README.md
+  - Web App: WEB_APP_README.md
+  - Setup Guide: SETUP.md
+  - Custom Models: CUSTOM_MODELS.md
   - Architecture: docs/VITS_GUIDE.md
   - API Reference: docs/API_REFERENCE.md
   - Configuration: docs/CONFIG_GUIDE.md
