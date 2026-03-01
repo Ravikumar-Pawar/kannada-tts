@@ -18,28 +18,29 @@ class MetricsCalculator:
         """Initialize metrics calculator"""
         self.sample_rate = sample_rate
     
-    def calculate_metrics(self, audio: np.ndarray, model_name: str = "") -> Dict:
+    def calculate_metrics(self, audio: np.ndarray, model_name: str = "", sample_rate: int = None) -> Dict:
         """
         Calculate comprehensive audio metrics
         
         Args:
             audio: Audio waveform (numpy array)
             model_name: Name of the model for logging
+            sample_rate: Optional override sample rate (defaults to self.sample_rate)
         
         Returns:
             Dictionary with calculated metrics
         """
         try:
             audio = np.array(audio, dtype=np.float32)
-            
+            sr = sample_rate or self.sample_rate
             metrics = {
                 "model": model_name,
-                "mcd": self._calculate_mcd(audio),
-                "snr": self._calculate_snr(audio),
-                "lsd": self._calculate_lsd(audio),
-                "zcr": self._calculate_zcr(audio),
-                "rms": self._calculate_rms(audio),
-                "duration": len(audio) / self.sample_rate,
+                "mcd": self._calculate_mcd(audio, sr),
+                "snr": self._calculate_snr(audio, sr),
+                "lsd": self._calculate_lsd(audio, sr),
+                "zcr": self._calculate_zcr(audio, sr),
+                "rms": self._calculate_rms(audio, sr),
+                "duration": len(audio) / sr,
             }
             
             logger.info(f"{model_name} Metrics: MCD={metrics['mcd']:.2f}, SNR={metrics['snr']:.2f}, LSD={metrics['lsd']:.2f}")
@@ -52,7 +53,7 @@ class MetricsCalculator:
                 "model": model_name
             }
     
-    def _calculate_mcd(self, audio: np.ndarray) -> float:
+    def _calculate_mcd(self, audio: np.ndarray, sample_rate: int) -> float:
         """
         Calculate Mel-Cepstral Distortion
         Lower is better (5.1 for Tacotron2, 4.2 for VITS)
@@ -61,7 +62,7 @@ class MetricsCalculator:
             # Compute mel-spectrogram
             mel_spec = librosa.feature.melspectrogram(
                 y=audio,
-                sr=self.sample_rate,
+                sr=sample_rate,
                 n_mels=80,
                 n_fft=1024,
                 hop_length=256
@@ -73,7 +74,7 @@ class MetricsCalculator:
             # Compute cepstral coefficients
             mfcc = librosa.feature.mfcc(
                 y=audio,
-                sr=self.sample_rate,
+                sr=sample_rate,
                 n_mfcc=13
             )
             
@@ -88,7 +89,7 @@ class MetricsCalculator:
             logger.warning(f"MCD calculation failed: {e}")
             return 0.0
     
-    def _calculate_snr(self, audio: np.ndarray) -> float:
+    def _calculate_snr(self, audio: np.ndarray, sample_rate: int) -> float:
         """
         Calculate Signal-to-Noise Ratio
         Higher is better (20.8 for Tacotron2, 22.5 for VITS)
@@ -112,13 +113,13 @@ class MetricsCalculator:
             logger.warning(f"SNR calculation failed: {e}")
             return 0.0
     
-    def _calculate_lsd(self, audio: np.ndarray) -> float:
+    def _calculate_lsd(self, audio: np.ndarray, sample_rate: int) -> float:
         """
         Calculate Log Spectral Distance
         Lower is better (4.5 for Tacotron2, 3.8 for VITS)
         """
         try:
-            # Compute STFT
+            # Compute STFT (librosa.stft does not accept sr argument)
             D = librosa.stft(audio)
             magnitude = np.abs(D)
             
@@ -134,7 +135,7 @@ class MetricsCalculator:
             logger.warning(f"LSD calculation failed: {e}")
             return 0.0
     
-    def _calculate_zcr(self, audio: np.ndarray) -> float:
+    def _calculate_zcr(self, audio: np.ndarray, sample_rate: int) -> float:
         """
         Calculate Zero Crossing Rate
         Indicates voicing and speech characteristics
@@ -147,7 +148,7 @@ class MetricsCalculator:
             logger.warning(f"ZCR calculation failed: {e}")
             return 0.0
     
-    def _calculate_rms(self, audio: np.ndarray) -> float:
+    def _calculate_rms(self, audio: np.ndarray, sample_rate: int) -> float:
         """
         Calculate Root Mean Square energy
         """

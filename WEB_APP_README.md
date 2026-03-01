@@ -66,7 +66,7 @@ Navigate to: **http://localhost:8000**
 - `GET /api/metrics/reference` - Get benchmark metrics
 
 - `POST /api/models/list` - List available models
-- `POST /api/models/prepare` - Download or reset a model variant
+- `POST /api/models/prepare` - Download or reset a model variant (supports pretrained HF model cached locally)
 
 ## API Documentation
 
@@ -80,7 +80,7 @@ Interactive API documentation available at:
 
 1. Enter Kannada text
 2. Choose approach:
-   - **Modern Hybrid (VITS)** - Recommended (default)
+   - **Modern Hybrid (VITS)** - Recommended (default). When pretrained variant is selected the system uses the Meta AI MMS-TTS Kannada model (`facebook/mms-tts-kan`) downloaded via 🤗 Transformers and cached in `~/.cache/huggingface`.
    - **Traditional (Tacotron2)** - For comparison
 3. Choose model variant:
    - **Default** (random-initial weights) for quick tests

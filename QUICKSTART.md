@@ -3,8 +3,11 @@
 ## 30-Second Setup
 
 ```bash
-# 1. Install dependencies
+# 1. Install dependencies (includes HuggingFace transformers for pretrained model)
 pip install -r requirements.txt
+# optionally set HF_TOKEN for faster authenticated downloads:
+#   export HF_TOKEN=<token>    (Linux/mac)
+#   setx HF_TOKEN "<token>"   (Windows)
 
 # 2. Validate setup
 python validate_setup.py
@@ -19,7 +22,7 @@ Open browser: **http://localhost:8000**
 
 ## What You Get
 
-✅ **Beautiful Web UI** - Test both approaches instantly
+✅ **Beautiful Web UI** - Test both approaches instantly (sample rate displayed)
 ✅ **Live Comparison** - Side-by-side Hybrid vs Traditional
 ✅ **Real Metrics** - Performance data from actual synthesis
 ✅ **Emotion Control** - 5 emotion types (Hybrid only)

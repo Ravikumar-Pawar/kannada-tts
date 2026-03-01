@@ -88,7 +88,7 @@ Try the interactive web interface with side-by-side comparison:
 
 3. **Features:**
    • 🎙️ Single synthesis with emotion control (Hybrid only)
-   • ⚙️ Model variant selector (default vs pre-trained Kannada) for each approach
+   • ⚙️ Model variant selector (default vs pre-trained Kannada) for each approach (hybrid uses Meta AI MMS-TTS Kannada VITS model when pretrained)
    • ⚖️ Side-by-side comparison of approaches
    • 📊 Real-time performance metrics
    • 🚀 Live baseline comparisons

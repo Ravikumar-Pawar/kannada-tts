@@ -53,6 +53,10 @@ class ModelManager:
                 model = self._load_vits_from_checkpoint(str(model_path))
             return model
         elif variant == "pretrained":
+            # return cached model if already loaded
+            if hasattr(self, '_hf_model') and self._hf_model is not None:
+                logger.info("Using cached HuggingFace MMS-TTS Kannada model")
+                return {"hf": True, "model": self._hf_model, "tokenizer": self._hf_tokenizer}
             # try to load huggingface model
             try:
                 from transformers import VitsModel, AutoTokenizer

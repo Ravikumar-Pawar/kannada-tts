@@ -6,8 +6,12 @@ Starts the FastAPI server with Kannada Text-to-Speech capabilities
 
 import os
 import sys
-import uvicorn
 import logging
+try:
+    import uvicorn
+except ImportError:
+    uvicorn = None
+    # will inform user later
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -35,6 +39,9 @@ def main():
     logger.info("\nPress Ctrl+C to stop the server")
     logger.info("=" * 60)
     
+    if uvicorn is None:
+        logger.error("uvicorn is not installed. Please run 'pip install uvicorn' and retry.")
+        sys.exit(1)
     uvicorn.run(
         "app:app",
         host="0.0.0.0",

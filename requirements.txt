@@ -23,6 +23,9 @@ python-multipart>=0.0.6
 pydantic>=2.0.0
 
 # Model Management
+# HuggingFace prerequisites for pretrained MMS-TTS model
+transformers>=4.33.0
+accelerate>=0.22.0
 gdown>=4.7.0
 
 # Utilities

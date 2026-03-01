@@ -51,14 +51,18 @@ class StandardInference:
         """Dynamically build a mapping covering the Kannada unicode block.
         Ensures all common characters and diacritics are included.
         """
-        mapping = {}
-        for code in range(0x0C80, 0x0CFF + 1):
-            ch = chr(code)
-            mapping[ch] = len(mapping)
-        for ch in [' ', '-', '?', '.', ',', '!', ':', ';', '(', ')', '[', ']', '|']:
-            if ch not in mapping:
-                mapping[ch] = len(mapping)
-        return mapping
+        # use a fixed static list compatible with num_chars=132 to avoid
+        # embedding index errors. This is the original hardcoded mapping.
+        kannada_chars = [
+            'ಅ', 'ಆ', 'ಇ', 'ಈ', 'ಉ', 'ಊ', 'ಋ', 'ಌ', 'ಎ', 'ಏ', 
+            'ಐ', 'ಒ', 'ಓ', 'ಔ', 'ಘ', 'ಙ', 'ಚ', 'ಛ', 'ಜ', 'ಝ',
+            'ಞ', 'ಟ', 'ಠ', 'ಡ', 'ಢ', 'ಣ', 'ತ', 'ಥ', 'ದ', 'ಧ',
+            'ನ', 'ಪ', 'ಫ', 'ಬ', 'ಭ', 'ಮ', 'ಯ', 'ರ', 'ಲ', 'ವ',
+            'ಶ', 'ಷ', 'ಸ', 'ಹ', 'ಾ', 'ಿ', 'ೀ', 'ುೂ', 'ೃ', 'ೆ',
+            'ೇ', 'ೈ', 'ೊ', 'ೋ', 'ೌ', 'ೃ', 'ಂ', 'ಃ', '್', '|', ' ',
+            '-', '?', '.', ',', '!', ':', ';', '(', ')', '[', ']'
+        ]
+        return {char: idx for idx, char in enumerate(kannada_chars)}
     
     def text_to_sequence(self, text: str) -> Tuple[torch.Tensor, torch.Tensor]:
         """
@@ -101,41 +105,48 @@ class StandardInference:
         """
         logger.info(f"Synthesizing: {text}")
         
-        with torch.no_grad():
-            # Convert text to sequence
-            sequence, length = self.text_to_sequence(text)
-            
-            # Generate mel spectrogram
-            mel_outputs, gate_outputs, _ = self.tacotron2(sequence, length, mels=None)
-            
-            # Stop at gate threshold
-            gates = torch.sigmoid(gate_outputs).squeeze(-1)
-            gate_positions = (gates > gate_threshold).nonzero(as_tuple=False)
-            
-            if gate_positions.numel() > 0:
-                stop_idx = gate_positions[0].item() + 1
-                mel_outputs = mel_outputs[:, :stop_idx, :]
-            
-            # guard against empty mel
-            if mel_outputs.numel() == 0 or mel_outputs.size(1) == 0:
-                logger.warning("Tacotron2 produced empty mel; returning silence")
-                return np.zeros(16000, dtype=np.float32)
-            
-            # Generate audio from mel using vocoder if available
-            if self.vocoder is not None:
-                audio = self.vocoder(mel_outputs)
-                audio = audio.squeeze(0).cpu().numpy()
-            else:
-                try:
-                    import librosa
-                    mel = mel_outputs.squeeze(0).cpu().numpy().T
-                    audio = librosa.feature.inverse.mel_to_audio(
-                        mel, sr=self.sample_rate, n_fft=2048, hop_length=256
-                    )
-                    audio = audio.astype(np.float32)
-                except Exception:
-                    logger.exception("Griffin-Lim fallback failed; returning silence")
-                    audio = np.zeros(16000, dtype=np.float32)
+        try:
+            with torch.no_grad():
+                # Convert text to sequence
+                sequence, length = self.text_to_sequence(text)
+                
+                # Generate mel spectrogram
+                mel_outputs, gate_outputs, _ = self.tacotron2(sequence, length, mels=None)
+                
+                # Stop at gate threshold
+                gates = torch.sigmoid(gate_outputs).squeeze(-1)
+                gate_positions = (gates > gate_threshold).nonzero(as_tuple=False)
+                
+                if gate_positions.numel() > 0:
+                    stop_idx = gate_positions[0].item() + 1
+                    mel_outputs = mel_outputs[:, :stop_idx, :]
+                
+                # guard against empty mel
+                if mel_outputs.numel() == 0 or mel_outputs.size(1) == 0:
+                    logger.warning("Tacotron2 produced empty mel; returning silence")
+                    return np.zeros(16000, dtype=np.float32)
+                
+                # Generate audio from mel using vocoder if available
+                if self.vocoder is not None:
+                    audio = self.vocoder(mel_outputs)
+                    audio = audio.squeeze(0).cpu().numpy()
+                else:
+                    try:
+                        import librosa
+                        mel = mel_outputs.squeeze(0).cpu().numpy().T
+                        audio = librosa.feature.inverse.mel_to_audio(
+                            mel, sr=self.sample_rate, n_fft=2048, hop_length=256
+                        )
+                        audio = audio.astype(np.float32)
+                    except Exception:
+                        logger.exception("Griffin-Lim fallback failed; returning silence")
+                        audio = np.zeros(16000, dtype=np.float32)
+                
+                return audio
+        except Exception as e:
+            logger.error(f"StandardInference synthesis failed: {e}")
+            # return silence to keep service running
+            return np.zeros(16000, dtype=np.float32)
             
             logger.info(f"Generated audio shape: {audio.shape}")
         

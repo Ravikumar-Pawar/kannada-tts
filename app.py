@@ -170,7 +170,8 @@ async def synthesize(request: SynthesizeRequest):
         audio = np.array(audio, dtype=np.float32)
         audio_bytes = io.BytesIO()
         import soundfile as sf
-        sf.write(audio_bytes, audio, 22050, format='WAV')
+        sr = getattr(inference, 'sample_rate', 22050)
+        sf.write(audio_bytes, audio, sr, format='WAV')
         audio_bytes.seek(0)
         audio_b64 = base64.b64encode(audio_bytes.read()).decode('utf-8')
         
@@ -180,7 +181,7 @@ async def synthesize(request: SynthesizeRequest):
             "approach": request.approach,
             "inference_time": inference_time,
             "audio_format": "wav",
-            "sample_rate": 22050
+            "sample_rate": sr
         }
     
     except Exception as e:
@@ -217,17 +218,20 @@ async def compare_approaches(request: ComparisonRequest):
         # Convert to numpy arrays
         hybrid_audio = np.array(hybrid_audio, dtype=np.float32)
         non_hybrid_audio = np.array(non_hybrid_audio, dtype=np.float32)
+        logger.info(f"Hybrid audio length={len(hybrid_audio)}, non-hybrid length={len(non_hybrid_audio)}")
         
         # Encode to base64
-        def audio_to_b64(audio_data):
+        def audio_to_b64(audio_data, sr=22050):
             audio_bytes = io.BytesIO()
             import soundfile as sf
-            sf.write(audio_bytes, audio_data, 22050, format='WAV')
+            sf.write(audio_bytes, audio_data, sr, format='WAV')
             audio_bytes.seek(0)
             return base64.b64encode(audio_bytes.read()).decode('utf-8')
         
-        hybrid_b64 = audio_to_b64(hybrid_audio)
-        non_hybrid_b64 = audio_to_b64(non_hybrid_audio)
+        hybrid_sr = getattr(hybrid_inference, 'sample_rate', 22050)
+        non_hybrid_sr = getattr(non_hybrid_inference, 'sample_rate', 22050)
+        hybrid_b64 = audio_to_b64(hybrid_audio, sr=hybrid_sr)
+        non_hybrid_b64 = audio_to_b64(non_hybrid_audio, sr=non_hybrid_sr)
         
         # Calculate metrics if requested
         hybrid_metrics = {}
@@ -236,8 +240,11 @@ async def compare_approaches(request: ComparisonRequest):
         
         if request.include_metrics:
             logger.info("Calculating metrics...")
-            hybrid_metrics = metrics_calculator.calculate_metrics(hybrid_audio, "Hybrid (VITS)")
-            non_hybrid_metrics = metrics_calculator.calculate_metrics(non_hybrid_audio, "Non-Hybrid (Tacotron2)")
+            # use each inference's sample_rate if available
+            hybrid_sr = getattr(hybrid_inference, 'sample_rate', 22050)
+            non_hybrid_sr = getattr(non_hybrid_inference, 'sample_rate', 22050)
+            hybrid_metrics = metrics_calculator.calculate_metrics(hybrid_audio, "Hybrid (VITS)", sample_rate=hybrid_sr)
+            non_hybrid_metrics = metrics_calculator.calculate_metrics(non_hybrid_audio, "Non-Hybrid (Tacotron2)", sample_rate=non_hybrid_sr)
             
             # Generate comparison summary
             comparison_summary = {
