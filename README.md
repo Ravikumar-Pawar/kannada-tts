@@ -126,6 +126,54 @@ Compared to Tacotron2 (Non-Hybrid):
   Speed: 2.8x faster (0.12s vs 0.34s)
   Size: 40% smaller (3M vs 5M parameters)
 
+### Legacy Baseline & Motivation
+
+The repository includes a standard Tacotron2 implementation as a
+*demonstration of the legacy, non-hybrid pipeline used in earlier Kannada
+TTS research*. While useful for benchmarking, the following limitations
+were identified during development:
+
+* **Alignment errors** – soft attention often mispronounces or skips
+  characters, particularly with longer Kannada sentences.
+* **Monotonic prosody** – outputs lack natural variation; every utterance
+  sounds excessively uniform.
+* **Slow inference** – two-stage decoder+vocoder makes real-time use
+  challenging on edge devices.
+* **Larger footprint** – model plus vocoder exceeds 5 M parameters, limiting
+  deployment on resource‑constrained hardware.
+* **Quality ceiling** – subjective naturalness plateaued despite extended
+  training, suggesting architectural constraints.
+
+These issues motivated the search for a more robust approach. The hybrid
+pipeline retains the Tacotron2 baseline for comparison but introduces a
+VAE‑based generative model with explicit duration modeling to overcome
+these shortcomings.
+
+### Why Hybrid? Why VITS?
+
+Multiple modern TTS architectures exist (FastSpeech, GlowTTS, DiffTTS,
+etc.), but VITS was selected for several reasons:
+
+1. **End‑to‑end design** combines acoustic modeling and waveform
+   generation in a single network, eliminating intermediate spectral
+   targets and simplifying deployment.
+2. **Variational latent space** allows stochastic sampling for natural
+   prosody and expressiveness – critical for Kannada's rich phonetic
+   variations.
+3. **Duration predictor** ensures stable, monotonic alignment without hard
+   attention, solving the alignment errors found in Tacotron2.
+4. **Lightweight and fast** – experiments showed VITS models were smaller
+   and 2–3× faster than baseline, enabling on-device inference.
+5. **Community adoption** – VITS has been successfully applied to many
+   languages, providing mature code and research guidance.
+
+The hybrid term indicates the integration of a *probabilistic generator*
+with deterministic components (duration predictor, post‑processors) to
+balance flexibility and control. The documentation in `docs/` delves into
+these design decisions and provides performance comparisons across
+approaches.
+
+
 FEATURES
 ========
 

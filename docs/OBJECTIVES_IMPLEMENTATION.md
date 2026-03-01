@@ -19,12 +19,49 @@ Status: FULLY IMPLEMENTED
 Approach: VITS + Tacotron2 Dual-Package System
 Location: src/hybrid/ (VITS) + src/non_hybrid/ (Tacotron2)
 
-Why VITS for Hybrid?
-  • VAE-based probabilistic generation → diverse, natural outputs
-  • Faster inference (0.12s vs 0.34s) → real-time capable
-  • Better spectral quality (MCD 4.2dB vs 5.1dB Tacotron2)
-  • Smaller model (3M params vs 5M) → deployable on edge devices
-  • Explicitly designed for end-to-end synthesis → Kannada-optimized
+Legacy Baseline Issues
+----------------------
+
+The non-hybrid Tacotron2 implementation serves as a reference point, but
+it exposes several recurring problems when applied to Kannada:
+
+  * Alignment instability leading to skipped or repeated characters.
+  * Flat, monotonic prosody in generated speech, reducing naturalness.
+  * Increased inference latency due to separate acoustic model and
+    vocoder stages.
+  * Relatively large model size (~5M params) that complicates edge
+    deployment.
+  * Quality plateau after prolonged training, indicating the need for a
+    more expressive architecture.
+
+These shortcomings motivated the shift to a hybrid paradigm that retains
+manageable components while introducing a probabilistic generator.
+
+Why VITS was Chosen
+-------------------
+
+A survey of modern TTS models (FastSpeech2, GlowTTS, Tacotron2+) showed
+that only VITS offered a true end-to-end VAE-based pipeline with
+integrated duration modeling and adversarial training. Specific reasons
+for adoption include:
+
+  • **End-to-end** – collapses acoustic and vocoder networks into one,
+    reducing error propagation and simplifying inference.
+  • **VAE latent space** – supports diverse prosody and sampling-based
+    expressiveness, which suits Kannada's phonetic richness.
+  • **Duration predictor** – gives stable monotonic alignment without
+    using an attention mechanism, directly addressing Tacotron2's
+    alignment errors.
+  • **Efficiency** – experiments demonstrated smaller size and faster
+    inference compared to both baseline and other contemporary models.
+  • **Proven success** – widely adopted in research communities with
+    open-source implementations and performance benchmarks.
+
+The term “hybrid” reflects combining deterministic duration and text
+encoding modules with a stochastic latent generator and external
+processing blocks (noise reduction, prosody). This structure balances
+robust control with natural variability.
+
 
 [B] VITS Model Architecture
 ───────────────────────────
