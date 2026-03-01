@@ -96,7 +96,7 @@ When you have trained models ready:
 
 ```bash
 # 1. Save checkpoint
-cp your_trained_model.pth ~/.cache/kannada_tts/vits_kannada.pth
+cp your_trained_model.pth <project_root>/models/vits_kannada.pth
 
 # 2. Restart app
 python run_app.py

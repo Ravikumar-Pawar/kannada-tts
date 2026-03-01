@@ -158,20 +158,26 @@ For systems with limited memory, reduce batch size:
 
 ### Method 1: Download from URL
 
-1. Place your model checkpoint in `~/.cache/kannada_tts/`:
+1. Place your model checkpoint in the project-local `models/` directory (or the path specified by `KANNADA_TTS_MODEL_DIR`):
 
 ```bash
 # Create cache directory
-mkdir -p ~/.cache/kannada_tts
+mkdir -p <project_root>/models  # or set KANNADA_TTS_MODEL_DIR to change the location
 
 # Copy your model files
-cp your_vits_model.pth ~/.cache/kannada_tts/vits_kannada.pth
-cp your_tacotron2_model.pth ~/.cache/kannada_tts/tacotron2_kannada.pth
+cp your_vits_model.pth <project_root>/models/vits_kannada.pth
+cp your_tacotron2_model.pth <project_root>/models/tacotron2_kannada.pth
 ```
 
 2. On next application start, models will be automatically loaded.
 
 ### Method 2: Automatic Download
+
+The hybrid (VITS) pretrained model can also be obtained from the HuggingFace repository `facebook/mms-tts-kan`.
+When the application first requests the pretrained variant the weights are downloaded via the Transformers library
+and stored under the project-local models directory (`<repo>/models/huggingface` by default). Subsequent restarts will
+load directly from that local cache instead of re-downloading.
+
 
 Update `src/model_manager.py` to download from a remote URL:
 
@@ -211,6 +217,12 @@ from src.model_manager import ModelManager
 manager = ModelManager()
 
 # Download model
+
+# Note on cache location
+# By default the application keeps all model files under `<project_root>/models`
+# (and HF downloads under `models/huggingface`).  If you'd prefer a different
+# location you can set the `KANNADA_TTS_MODEL_DIR` environment variable before
+# starting the server.
 manager.download_model_from_url(
     "vits",
     "https://your-server.com/models/vits_kannada.pth"
@@ -365,10 +377,10 @@ uvicorn app:app --port 8001
 **Solution:**
 ```bash
 # Check if models exist
-ls ~/.cache/kannada_tts/
+ls <project_root>/models/
 
 # Manually copy models
-cp /path/to/model.pth ~/.cache/kannada_tts/
+cp /path/to/model.pth <project_root>/models/
 
 # Verify setup
 python validate_setup.py

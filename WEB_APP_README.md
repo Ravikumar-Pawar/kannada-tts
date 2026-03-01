@@ -80,7 +80,7 @@ Interactive API documentation available at:
 
 1. Enter Kannada text
 2. Choose approach:
-   - **Modern Hybrid (VITS)** - Recommended (default). When pretrained variant is selected the system uses the Meta AI MMS-TTS Kannada model (`facebook/mms-tts-kan`) downloaded via 🤗 Transformers and cached in `~/.cache/huggingface`.
+   - **Modern Hybrid (VITS)** - Recommended (default). When pretrained variant is selected the system uses the Meta AI MMS-TTS Kannada model (`facebook/mms-tts-kan`). The weights are downloaded once and stored under the project’s own `models` directory (e.g. `<repo_root>/models/huggingface`) so that subsequent startups reuse the local copy instead of hitting the network. You can change the location by setting the `KANNADA_TTS_MODEL_DIR` environment variable.
    - **Traditional (Tacotron2)** - For comparison
 3. Choose model variant:
    - **Default** (random-initial weights) for quick tests
@@ -132,7 +132,7 @@ FastAPI Application (app.py)
 
 ## Model Management
 
-Models are automatically downloaded and cached in `~/.cache/kannada_tts/`
+Models are automatically downloaded and cached in the project’s `models/` directory (or the location set by `KANNADA_TTS_MODEL_DIR`).
 
 ### Supported Models
 
@@ -206,7 +206,7 @@ uvicorn app:app --port 8001
 ### Adding Custom Models
 
 1. Train your model using the training pipeline
-2. Save checkpoint to `~/.cache/kannada_tts/`
+2. Save checkpoint to the `models/` directory at the project root (or override with `KANNADA_TTS_MODEL_DIR`).
 3. Update `model_manager.py` to load your checkpoint
 
 ### Extending Functionality
@@ -225,7 +225,7 @@ uvicorn app:app --port 8001
 ## FAQ
 
 **Q: Can I use this with my own trained models?**
-A: Yes! Place your checkpoint files in `~/.cache/kannada_tts/` and update the model loading code.
+A: Yes! Place your checkpoint files in the project `models/` folder (or set `KANNADA_TTS_MODEL_DIR` to a custom path) and update the model loading code.
 
 **Q: Is the audio data sent to external servers?**
 A: No! Everything runs locally on your machine. The UI is purely client-side JavaScript.

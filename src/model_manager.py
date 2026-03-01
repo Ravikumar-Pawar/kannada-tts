@@ -18,18 +18,34 @@ class ModelManager:
     
     def __init__(self):
         """Initialize model manager"""
-        self.model_cache_dir = Path.home() / ".cache" / "kannada_tts"
+        # by default store models in a local "models" directory at the
+        # root of the project. This makes it easier to package or move the
+        # repository without relying on the user's home directory.  The path
+        # can also be overridden with the KANNADA_TTS_MODEL_DIR environment
+        # variable if a different location is desired.
+        project_root = Path(__file__).resolve().parent.parent
+        default_dir = project_root / "models"
+        self.model_cache_dir = Path(os.environ.get("KANNADA_TTS_MODEL_DIR", default_dir))
         self.model_cache_dir.mkdir(parents=True, exist_ok=True)
+
+        # separate subfolder for HuggingFace downloads so HF cache doesn't
+        # mix with manually provided checkpoint files
+        self.hf_cache_dir = self.model_cache_dir / "huggingface"
+        self.hf_cache_dir.mkdir(parents=True, exist_ok=True)
+
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         
         # known pretrained model URLs (placeholders/demo)
-        # Replace with real links once available.
+        # Replace with real links once available.  The hybrid URL may be set to
+        # the HuggingFace repo identifier so that ``prepare_model`` can use it
+        # for explicit downloads via ``from_pretrained``.
         self.PRETRAINED_URLS = {
-            "hybrid": "https://example.com/pretrained/vits_kannada.pth",
+            "hybrid": "facebook/mms-tts-kan",  # HF model id (downloaded to hf_cache_dir)
             "non_hybrid": "https://example.com/pretrained/tacotron2_kannada.pth"
         }
 
-        logger.info(f"Model cache directory: {self.model_cache_dir}")
+        logger.info(f"Model directory: {self.model_cache_dir}")
+        logger.info(f"HuggingFace cache directory: {self.hf_cache_dir}")
     
     def load_vits_model(self, variant: str = "default"):
         """
@@ -53,23 +69,46 @@ class ModelManager:
                 model = self._load_vits_from_checkpoint(str(model_path))
             return model
         elif variant == "pretrained":
-            # return cached model if already loaded
+            # if we've already instantiated the HF objects in this process,
+            # reuse them (avoids re-loading into memory on repeated calls).
             if hasattr(self, '_hf_model') and self._hf_model is not None:
-                logger.info("Using cached HuggingFace MMS-TTS Kannada model")
+                logger.info("Using cached HuggingFace MMS-TTS Kannada model in memory")
                 return {"hf": True, "model": self._hf_model, "tokenizer": self._hf_tokenizer}
-            # try to load huggingface model
+
+            # attempt to load from a local cache directory first. this avoids any
+            # network traffic when the model has been downloaded previously.
+            from transformers import VitsModel, AutoTokenizer
+            repo_id = self.PRETRAINED_URLS.get("hybrid", "facebook/mms-tts-kan")
             try:
-                from transformers import VitsModel, AutoTokenizer
-                logger.info("Loading HuggingFace MMS-TTS Kannada model")
-                hf_model = VitsModel.from_pretrained("facebook/mms-tts-kan")
-                hf_tokenizer = AutoTokenizer.from_pretrained("facebook/mms-tts-kan")
-                # keep references so subsequent calls reuse the same objects
-                self._hf_model = hf_model.to(self.device)
-                self._hf_tokenizer = hf_tokenizer
-                return {"hf": True, "model": self._hf_model, "tokenizer": self._hf_tokenizer}
-            except Exception as e:
-                logger.warning(f"Failed to load HF model: {e}. Falling back to default.")
-                return self.load_vits_model("default")
+                # try local-only load first
+                logger.info("Trying to load HuggingFace MMS-TTS Kannada model from local cache")
+                hf_model = VitsModel.from_pretrained(
+                    repo_id,
+                    cache_dir=str(self.hf_cache_dir),
+                    local_files_only=True
+                )
+                hf_tokenizer = AutoTokenizer.from_pretrained(
+                    repo_id,
+                    cache_dir=str(self.hf_cache_dir),
+                    local_files_only=True
+                )
+                logger.info("Loaded HF model from cache directory")
+            except Exception:
+                # local cache not present or incomplete, download from HF
+                logger.info("Downloading HuggingFace MMS-TTS Kannada model to cache")
+                hf_model = VitsModel.from_pretrained(
+                    repo_id,
+                    cache_dir=str(self.hf_cache_dir)
+                )
+                hf_tokenizer = AutoTokenizer.from_pretrained(
+                    repo_id,
+                    cache_dir=str(self.hf_cache_dir)
+                )
+
+            # keep references so subsequent call within same session reuses them
+            self._hf_model = hf_model.to(self.device)
+            self._hf_tokenizer = hf_tokenizer
+            return {"hf": True, "model": self._hf_model, "tokenizer": self._hf_tokenizer}
         else:
             raise ValueError(f"Unknown VITS variant: {variant}")
     
@@ -193,11 +232,23 @@ class ModelManager:
     
     def get_model_info(self):
         """Get information about cached models and available pretrained URLs"""
+        # check HF cache subdirectory for a downloaded repo
+        hf_cached = False
+        try:
+            # look for any subdir containing the repo identifier
+            for child in self.hf_cache_dir.iterdir():
+                if "mms-tts-kan" in child.name:
+                    hf_cached = True
+                    break
+        except Exception:
+            hf_cached = False
+
         return {
             "cache_directory": str(self.model_cache_dir),
             "vits_model": {
                 "path": str(self.model_cache_dir / "vits_kannada.pth"),
                 "exists": (self.model_cache_dir / "vits_kannada.pth").exists(),
+                "hf_cache_exists": hf_cached,
                 "pretrained_url": self.PRETRAINED_URLS.get("hybrid")
             },
             "tacotron2_model": {
@@ -227,6 +278,18 @@ class ModelManager:
                 target_path.unlink()
             return {"status": "default_initialized"}
         elif variant == "pretrained":
+            # for hybrid we treat the HF repository as the source; calling
+            # ``load_vits_model`` will download it if necessary and populate the
+            # hf_cache_dir.  the ``PRETRAINED_URLS`` entry is interpreted as a
+            # repo_id rather than a raw HTTP URL.
+            if approach == "hybrid":
+                repo_id = self.PRETRAINED_URLS.get("hybrid")
+                if repo_id is None:
+                    raise ValueError(f"No pretrained URL configured for {approach}")
+                # trigger a load which will download if missing
+                self.load_vits_model(variant="pretrained")
+                return {"status": "pretrained_ready", "cache_dir": str(self.hf_cache_dir)}
+
             url = self.PRETRAINED_URLS.get(approach)
             if url is None:
                 raise ValueError(f"No pretrained URL configured for {approach}")

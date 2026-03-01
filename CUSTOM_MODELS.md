@@ -16,9 +16,9 @@ The application currently initializes models with default configurations. To int
 
 2. **Place models in cache directory:**
    ```bash
-   mkdir -p ~/.cache/kannada_tts
-   cp your_vits_model.pth ~/.cache/kannada_tts/vits_kannada.pth
-   cp your_tacotron2_model.pth ~/.cache/kannada_tts/tacotron2_kannada.pth
+   mkdir -p <project_root>/models    # or set KANNADA_TTS_MODEL_DIR accordingly
+   cp your_vits_model.pth <project_root>/models/vits_kannada.pth
+   cp your_tacotron2_model.pth <project_root>/models/tacotron2_kannada.pth
    ```
 
 3. **Restart the application:**
@@ -59,7 +59,9 @@ best_checkpoint_path = "/path/to/best_model.pth"
 torch.save(vits.state_dict(), best_checkpoint_path)
 
 # Save to cache (auto-load on startup)
-cache_path = Path.home() / ".cache" / "kannada_tts"
+# previously cache_path = Path.home() / ".cache" / "kannada_tts"
+# now the code uses the project-local models directory or
+# the path specified by the KANNADA_TTS_MODEL_DIR environment variable.
 torch.save(vits.state_dict(), cache_path / "vits_kannada.pth")
 ```
 
@@ -122,7 +124,10 @@ Store models in a custom location:
 # In src/model_manager.py
 def __init__(self, model_dir: str = None):
     if model_dir is None:
-        self.model_cache_dir = Path.home() / ".cache" / "kannada_tts"
+        # self.model_cache_dir = Path.home() / ".cache" / "kannada_tts"  # old behaviour
+        # models are stored under the repository in `models/` by default
+        project_root = Path(__file__).resolve().parent.parent
+        self.model_cache_dir = Path(os.environ.get("KANNADA_TTS_MODEL_DIR", project_root / "models"))
     else:
         self.model_cache_dir = Path(model_dir)
     
@@ -242,13 +247,13 @@ def load_model_by_version(model_name: str, version: str):
 
 3. **Backup old model:**
    ```bash
-   mv ~/.cache/kannada_tts/vits_kannada.pth \
-      ~/.cache/kannada_tts/vits_kannada_v1_backup.pth
+   mv <project_root>/models/vits_kannada.pth \
+      <project_root>/models/vits_kannada_v1_backup.pth
    ```
 
 4. **Install new model:**
    ```bash
-   cp vits_kannada_v2.pth ~/.cache/kannada_tts/vits_kannada.pth
+   cp vits_kannada_v2.pth <project_root>/models/vits_kannada.pth
    ```
 
 5. **Test:**
@@ -259,8 +264,8 @@ def load_model_by_version(model_name: str, version: str):
 
 6. **Roll back if needed:**
    ```bash
-   mv ~/.cache/kannada_tts/vits_kannada_v1_backup.pth \
-      ~/.cache/kannada_tts/vits_kannada.pth
+   mv <project_root>/models/vits_kannada_v1_backup.pth \
+      <project_root>/models/vits_kannada.pth
    ```
 
 ---
@@ -271,7 +276,7 @@ def load_model_by_version(model_name: str, version: str):
 
 **Check 1:** Verify model path exists
 ```bash
-ls -la ~/.cache/kannada_tts/
+ls -la <project_root>/models/
 ```
 
 **Check 2:** Verify model architecture matches initialization

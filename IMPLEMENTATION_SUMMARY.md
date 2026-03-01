@@ -26,7 +26,7 @@ A complete FastAPI-based web application has been implemented to showcase and co
 
 #### `src/model_manager.py` - Model Management
 - **Auto-initialization** of both VITS and Tacotron2 models
-- **Caching system** using `~/.cache/kannada_tts/`
+- **Caching system** using a project-local `models/` directory (default) or path from `KANNADA_TTS_MODEL_DIR`
 - **Model download support** via gdown
 - **Device management** (GPU/CPU auto-detection)
 - **Checkpoint loading** from saved states
@@ -260,8 +260,8 @@ When you have trained your own models:
 
 1. **Save trained models:**
    ```bash
-   mkdir -p ~/.cache/kannada_tts
-   cp your_vits_model.pth ~/.cache/kannada_tts/vits_kannada.pth
+   mkdir -p <project_root>/models  # or set KANNADA_TTS_MODEL_DIR and use that path
+   cp your_vits_model.pth <project_root>/models/vits_kannada.pth
    ```
 
 2. **Restart application:**

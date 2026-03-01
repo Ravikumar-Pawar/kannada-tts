@@ -286,7 +286,7 @@ Web Application:
 
 Custom Models:
   - Integration guide: CUSTOM_MODELS.md
-  - Model caching: ~/.cache/kannada_tts/
+  - Model caching: project-local `models/` folder (configurable via KANNADA_TTS_MODEL_DIR; defaults to `<repo_root>/models/`)
 
 Python API:
   - Quick examples: python examples.py

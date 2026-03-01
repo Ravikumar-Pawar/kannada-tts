@@ -3,23 +3,23 @@ FastAPI Application for Kannada TTS
 Supports both hybrid (VITS) and non-hybrid (Tacotron2) approaches
 """
 
-import os
-import io
-import time
-import torch
-import numpy as np
-from fastapi import FastAPI, HTTPException, BackgroundTasks, UploadFile, File
-from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import Optional, List
-import logging
 import base64
+import io
+import logging
+import time
+from typing import Optional
+
+import numpy as np
+import torch
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 
 from src.inference_unified import TTSInference
-from src.model_manager import ModelManager
 from src.metrics_calculator import MetricsCalculator
+from src.model_manager import ModelManager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -159,11 +159,11 @@ async def synthesize(request: SynthesizeRequest):
         
         # Synthesize
         start_time = time.time()
-        audio = inference.synthesize(
-            request.text,
-            emotion=request.emotion if request.approach == "hybrid" else None,
-            post_processing=request.post_processing if request.approach == "hybrid" else None
-        )
+        synth_kwargs = {}
+        if request.approach == "hybrid":
+            synth_kwargs["emotion"] = request.emotion
+            synth_kwargs["post_processing"] = request.post_processing
+        audio = inference.synthesize(request.text, **synth_kwargs)
         inference_time = time.time() - start_time
         
         # Convert audio to base64
@@ -353,7 +353,7 @@ async def list_models():
                 "name": "Hybrid (VITS)",
                 "approach": "hybrid",
                 "status": "loaded" if hybrid_inference else "not_loaded",
-                "cached": info["vits_model"]["exists"],
+                "cached": info["vits_model"]["exists"] or info["vits_model"].get("hf_cache_exists", False),
                 "pretrained_url": info["vits_model"]["pretrained_url"],
                 "description": "Modern VAE-based end-to-end TTS with superior quality"
             },
@@ -422,6 +422,6 @@ if __name__ == "__main__":
     uvicorn.run(
         app,
         host="0.0.0.0",
-        port=8000,
+        port=8443,
         log_level="info"
     )

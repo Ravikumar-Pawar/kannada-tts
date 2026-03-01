@@ -77,7 +77,9 @@ class TTSInference:
                    if k not in ["emotion", "post_processing"]}
             )
         else:
-            return self.inference.synthesize(text, **kwargs)
+            # drop any None values (e.g. hybrid-specific args passed as None)
+            filtered = {k: v for k, v in kwargs.items() if v is not None}
+            return self.inference.synthesize(text, **filtered)
     
     def synthesize_batch(self, texts: list, **kwargs):
         """Synthesize multiple texts"""
