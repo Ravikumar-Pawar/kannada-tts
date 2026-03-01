@@ -5,16 +5,38 @@ VITS Production Implementation - Version 2.0
 OVERVIEW
 ========
 
-Production-ready Kannada Text-to-Speech system using VITS (Variational Inference 
-Text-to-Speech), a state-of-the-art VAE-based end-to-end approach for superior 
-audio quality and inference speed.
+Production-ready Kannada Text-to-Speech system based on **VITS** (Variational
+Inference Text-to-Speech), a modern end-to-end neural TTS architecture that
+delivers high-quality, natural-sounding audio with efficient inference.
 
-This implementation includes:
-  - VITS acoustic model with full VAE framework
-  - Advanced audio processing pipeline (3 processors)
-  - Unified training and inference interfaces
-  - Non-hybrid Tacotron2 baseline for comparison
-  - Complete documentation and working examples
+Key components of this repository:
+
+* VITS acoustic model with a VAE framework and learned duration predictor
+* Optional HiFiGAN vocoder for waveform synthesis
+* Audio processing pipeline (noise reduction, prosody enhancement, post-processing)
+* Unified interfaces for training and inference across both hybrid and non-hybrid models
+* Non-hybrid Tacotron2 baseline for benchmarking
+* Extensive documentation and working Python/CLI examples
+
+How it works (high level):
+
+1. **Text preprocessing** – Kannada input is tokenized into a fixed set of characters.
+2. **TextEncoder** converts tokens into a hidden representation.
+3. **DurationPredictor** estimates how long each token should last, allowing the model to
+   expand the text encoding along the time dimension.
+4. The **PosteriorEncoder** (training only) learns a latent distribution over
+   mel‑spectrogram frames; during inference a latent vector is sampled from a
+   standard normal prior scaled by a temperature parameter.
+5. The **Generator** (decoder) takes the expanded encoding and latent vector to
+   produce a mel‑spectrogram.
+6. A **vocoder** (HiFiGAN or Griffin–Lim) converts the mel output into a waveform.
+7. Optional **audio processing** modules enhance the final waveform with noise
+   reduction and prosody adjustments.
+
+If you're new to the terminology or curious how the pieces fit together, see
+[docs/TERMINOLOGY.md](docs/TERMINOLOGY.md) for explanations of core concepts.
+To explore a particular area in detail, follow the links in the **Documentation**
+section below.
 
 QUICK START
 ===========
@@ -137,16 +159,17 @@ DOCUMENTATION
 ==============
 
 Start Here:
-  docs/README.md - Quick start and reference
+  * [docs/README.md](docs/README.md) – Documentation hub and quick start
 
-Architecture:
-  docs/VITS_GUIDE.md - VITS design and training
+Core Guides:
+  * [Terminology](docs/TERMINOLOGY.md) – Basic terms and concepts
+  * [VITS Guide](docs/VITS_GUIDE.md) – Architecture design and training/inference walkthrough
+  * [API Reference](docs/API_REFERENCE.md) – Auto-generated details for all public classes/functions
+  * [Configuration Guide](docs/CONFIG_GUIDE.md) – Hyperparameters, JSON formats, and tuning tips
+  * [Objectives & Implementation](docs/OBJECTIVES_IMPLEMENTATION.md) – Background, goals and compliance report (optional)
 
-API:
-  docs/API_REFERENCE.md - Complete API documentation
-
-Configuration:
-  docs/CONFIG_GUIDE.md - Parameter tuning guide
+Each document contains links to other sections when relevant; use the hub page
+(`docs/README.md`) to navigate.
 
 GETTING HELP
 ============

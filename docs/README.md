@@ -17,8 +17,19 @@ QUICK START
    inference = VITSInference(vits)
    audio = inference.synthesize("ನಮಸ್ಕಾರ")
 
-DIRECTORY STRUCTURE
-===================
+DOCUMENTATION STRUCTURE
+=======================
+
+The documentation is divided into several focused guides. Start with the **Quick Start** above and then follow the links below for more in‑depth information.
+
+* [Terminology](TERMINOLOGY.md) – Definitions of core concepts used throughout the project
+* [VITS Guide](VITS_GUIDE.md) – Detailed architecture description and training/inference procedures
+* [API Reference](API_REFERENCE.md) – Class, method and configuration documentation generated from the source code
+* [Configuration Guide](CONFIG_GUIDE.md) – Explanation of configuration files and tuning tips
+* [Objectives & Implementation](OBJECTIVES_IMPLEMENTATION.md) – Background, goals and compliance report (optional reading)
+
+FILE ORGANIZATION OVERVIEW
+==========================
 
 src/
   hybrid/               - VITS-based hybrid approach
