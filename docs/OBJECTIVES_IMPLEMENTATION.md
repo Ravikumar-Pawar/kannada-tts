@@ -1,6 +1,12 @@
 KANNADA TEXT-TO-SPEECH SYSTEM
 Hybrid Deep-Learning Objectives Implementation Map
 
+> **Supplementary documents:**
+> * [Implementation Complete](texts/IMPLEMENTATION_COMPLETE.txt)
+> * [Objectives Verification Report](texts/OBJECTIVES_VERIFICATION_REPORT.txt)
+> * [Three Objectives Summary](texts/THREE_OBJECTIVES_SUMMARY.txt)
+>
+
 ================================================================================
 OBJECTIVE 1: HYBRID DEEP-LEARNING ALGORITHM FOR ACCURATE & NATURAL KANNADA TTS
 ================================================================================

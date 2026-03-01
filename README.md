@@ -2,6 +2,20 @@ Kannada Text-to-Speech System
 
 VITS Production Implementation - Version 2.0
 
+## Table of Contents
+
+* [Overview](#overview)
+* [Quick Start](#quick-start)
+* [System Requirements](#system-requirements)
+* [Directory Structure](#directory-structure)
+* [Performance](#performance)
+* [Features](#features)
+* [Usage](#usage)
+* [Documentation](#documentation)
+* [Supplementary Texts](#supplementary-texts)
+* [Getting Help](#getting-help)
+* [Troubleshooting](#troubleshooting)
+
 OVERVIEW
 ========
 
@@ -167,6 +181,11 @@ Core Guides:
   * [API Reference](docs/API_REFERENCE.md) – Auto-generated details for all public classes/functions
   * [Configuration Guide](docs/CONFIG_GUIDE.md) – Hyperparameters, JSON formats, and tuning tips
   * [Objectives & Implementation](docs/OBJECTIVES_IMPLEMENTATION.md) – Background, goals and compliance report (optional)
+
+Supplementary Texts:
+  * [Implementation Complete](docs/texts/IMPLEMENTATION_COMPLETE.txt) – checklist of completed features
+  * [Objectives Verification Report](docs/texts/OBJECTIVES_VERIFICATION_REPORT.txt) – compliance status
+  * [Three Objectives Summary](docs/texts/THREE_OBJECTIVES_SUMMARY.txt) – project goals overview
 
 Each document contains links to other sections when relevant; use the hub page
 (`docs/README.md`) to navigate.
