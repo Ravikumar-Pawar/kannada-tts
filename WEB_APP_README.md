@@ -109,6 +109,14 @@ Shows benchmark results comparing:
 | Model Size | 3.0M | 5.0M | 40% Smaller |
 | Naturalness | 0.92 | 0.85 | 8.2% Better |
 
+> **Note:** Scores are computed using the `MetricsCalculator` (see
+> `src/metrics_calculator.py`) or the more comprehensive
+> `evaluate.py` implementation described in the documentation.  The live
+> metrics shown in the UI are derived from the same code; intelligibility
+> and emotional accuracy are analysed offline during performance
+> evaluation.  Consult `docs/objectives/OBJECTIVES_IMPLEMENTATION.md` for
+> formula breakdowns and interpretation of each metric.
+
 ## Architecture
 
 ```

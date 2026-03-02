@@ -7,6 +7,7 @@ import torch
 import numpy as np
 import logging
 import soundfile as sf
+import unicodedata
 from typing import Tuple, Optional, Dict
 
 logger = logging.getLogger(__name__)
@@ -56,12 +57,22 @@ class VITSInference:
         """
         Convert text to character indices
         
+        Kannada text is first normalized to Unicode NFC form so that
+diacritic marks and composed syllables are represented consistently.  The
+normalized string is then mapped character-by-character using the
+`character_mapping` dictionary. Characters not found trigger a logged
+warning and are skipped; an entirely empty result falls back to a
+placeholder index of 0.
+
         Args:
             text: Input text
         
         Returns:
             Character indices tensor, length tensor
         """
+        # normalization step ensures canonical representation of Kannada
+        text = unicodedata.normalize('NFC', text)
+
         sequence = []
         for char in text:
             if char in self.character_mapping:

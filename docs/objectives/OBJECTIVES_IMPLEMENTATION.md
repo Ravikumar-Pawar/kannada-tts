@@ -198,6 +198,28 @@ Vowel Modifiers: 14 chars
   ೆ (e), ೇ (ee), ೈ (ai), ೊ (o), ೋ (oo), ೌ (au),
   ಂ (anusvara), ಃ (visarga)
 
+[F] Kannada Text Preprocessing
+------------------------------
+
+Prior to tokenization the input string is normalized to Unicode NFC
+using Python's `unicodedata.normalize`. This ensures that composed glyphs
+(e.g. consonant+vowel combinations) are represented in a canonical form.
+The normalized text is then converted character-by-character into indices
+via a mapping that covers the entire Kannada Unicode block (U+0C80–0CFF)
+and several common punctuation marks. Characters outside this set are
+logged and skipped; empty strings default to index 0.
+
+- Hybrid path (VITS): mapping built dynamically at runtime from the
+  Unicode block, automatically incorporating any extended or rare
+  characters.
+
+- Non-hybrid path (Tacotron2): uses a fixed 132‑character vocabulary
+  matching the original training configuration for checkpoint
+  compatibility.  Custom mappings can be supplied if necessary.
+
+This preprocessing is applied consistently during both training and
+inference, guaranteeing robust handling of real-world Kannada text.
+
 Additional Characters:
   • Devanagari numbers: ೦-೯ (0-9)
   • Common punctuation: ।, , ॥, etc.

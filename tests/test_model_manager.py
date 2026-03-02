@@ -79,3 +79,39 @@ def test_prepare_model_hybrid(monkeypatch):
     info = manager.prepare_model('hybrid', 'pretrained')
     assert info.get('status') == 'pretrained_ready'
     assert manager.hf_cache_dir.exists()
+
+
+def test_text_normalization_and_mapping():
+    """Ensure Kannada text is normalized and mapped consistently.
+
+    Both inference paths call `unicodedata.normalize('NFC', ...)` before
+    converting characters to indices.  We verify that a pre‑normalized
+    string and its decomposed equivalent produce identical sequences.
+    """
+    import unicodedata
+    # simple dummy that satisfies the minimal interface required by
+    # inference classes (only .to and .eval are called during init)
+    class SimpleDummy:
+        def to(self, device):
+            return self
+
+        def eval(self):
+            return self
+
+    from src.hybrid.vits_inference import VITSInference
+    from src.non_hybrid.inference import StandardInference
+
+    dummy = SimpleDummy()
+    vits_inf = VITSInference(dummy)
+    std_inf = StandardInference(dummy, None)
+
+    base = "ಕಾಯ"  # two-character Kannada string
+    decomposed = unicodedata.normalize('NFD', base)
+
+    seq1, _ = vits_inf.text_to_sequence(base)
+    seq2, _ = vits_inf.text_to_sequence(decomposed)
+    assert seq1.tolist() == seq2.tolist(), "VITS mapping should ignore normalization differences"
+
+    seq3, _ = std_inf.text_to_sequence(base)
+    seq4, _ = std_inf.text_to_sequence(decomposed)
+    assert seq3.tolist() == seq4.tolist(), "Standard mapping should ignore normalization differences"

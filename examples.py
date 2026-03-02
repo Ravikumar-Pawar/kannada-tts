@@ -4,11 +4,10 @@ Kannada TTS Examples - Demonstrating Both Approaches
 Complete examples for hybrid and non-hybrid TTS systems
 """
 
-import torch
-import numpy as np
-import os
 import logging
-from datetime import datetime
+import os
+
+import torch
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -375,8 +374,7 @@ def example_9_model_comparison():
     
     from src.hybrid.models import Tacotron2Hybrid, VocoderHybrid
     from src.non_hybrid.models import Tacotron2Model, VocoderModel
-    import torch
-    
+
     device = "cpu"  # Use CPU for quick comparison
     
     # Hybrid models

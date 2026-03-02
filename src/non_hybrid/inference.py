@@ -5,6 +5,7 @@ Standard Inference Pipeline for Non-Hybrid Approach
 import torch
 import numpy as np
 import logging
+import unicodedata
 from typing import Tuple, Optional
 import soundfile as sf
 
@@ -48,11 +49,16 @@ class StandardInference:
         logger.info(f"StandardInference initialized on {device}")
     
     def _get_default_kannada_mapping(self) -> dict:
-        """Dynamically build a mapping covering the Kannada unicode block.
-        Ensures all common characters and diacritics are included.
+        """Return the default mapping used by the Tacotron2 baseline.
+
+        This static list corresponds to the 132‑character vocabulary that was
+        used during training; keeping it fixed ensures that checkpoints trained
+        with this set remain compatible.  The mapping includes core Kannada
+        letters, vowel signs, diacritics and a few common punctuation marks.
+        Developers may override this by providing a custom `character_mapping`
+        dict when instantiating the class.
         """
-        # use a fixed static list compatible with num_chars=132 to avoid
-        # embedding index errors. This is the original hardcoded mapping.
+        # the vocabulary must match the training configuration exactly
         kannada_chars = [
             'ಅ', 'ಆ', 'ಇ', 'ಈ', 'ಉ', 'ಊ', 'ಋ', 'ಌ', 'ಎ', 'ಏ', 
             'ಐ', 'ಒ', 'ಓ', 'ಔ', 'ಘ', 'ಙ', 'ಚ', 'ಛ', 'ಜ', 'ಝ',
@@ -68,12 +74,20 @@ class StandardInference:
         """
         Convert text to character indices
         
+        Prior to mapping the text is normalized to Unicode NFC.  This step
+        canonicalizes composed characters and diacritics, which is especially
+        important for Kannada where a single glyph may be represented in
+        multiple ways in Unicode.
+
         Args:
             text: Input text
         
         Returns:
             Character indices tensor, length tensor
         """
+        # normalize input string for consistent handling of Kannada script
+        text = unicodedata.normalize('NFC', text)
+
         sequence = []
         for char in text:
             if char in self.character_mapping:

@@ -138,6 +138,22 @@ Character Mapping (Kannada):
   - Punctuation marks
   - Special symbols
 
+Text Normalization:
+  Before any tokenization step the input string is normalized to
+  Unicode NFC form (`unicodedata.normalize('NFC', text)`).  This handles
+  compound characters and diacritics consistently, ensuring that the same
+  spoken output is produced regardless of the original encoding of the
+  text.  Normalization is performed during both training and inference.
+
+Mapping Details:
+  The default character mapping is constructed dynamically from the entire
+  Kannada Unicode block (U+0C80–0CFF) and appended punctuation; this
+  allows the hybrid/VITS pipeline to automatically support the full range
+  of Kannada glyphs without manual updates.  For the non-hybrid Tacotron2
+  baseline a fixed 132‑char vocabulary (matching the training data) is
+  used to maintain checkpoint compatibility, but custom mappings may be
+  provided if different vocabularies are required.
+
 Post-Processing Options:
   - none: No processing
   - basic: Light noise reduction
