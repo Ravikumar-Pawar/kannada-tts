@@ -173,7 +173,7 @@ cp your_tacotron2_model.pth <project_root>/models/tacotron2_kannada.pth
 
 ### Method 2: Automatic Download
 
-The hybrid (VITS) pretrained model can also be obtained from the HuggingFace repository `facebook/mms-tts-kan`.
+The hybrid (VITS) pretrained model (VITS Hybrid Model) can also be obtained from the HuggingFace repository `facebook/mms-tts-kan`.
 When the application first requests the pretrained variant the weights are downloaded via the Transformers library
 and stored under the project-local models directory (`<repo>/models/huggingface` by default). Subsequent restarts will
 load directly from that local cache instead of re-downloading.

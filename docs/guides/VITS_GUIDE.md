@@ -7,7 +7,7 @@ VITS (Variational Inference Text-to-Speech) is a state-of-the-art end-to-end TTS
 using Variational Autoencoders (VAE) for improved audio quality and variability control.
 
 > **Note:** the current web demo and quick‑start examples default to using the
-> `facebook/mms-tts-kan` pretrained checkpoint from HuggingFace.  This is merely
+> VITS Hybrid Model (pretrained checkpoint available from HuggingFace: `facebook/mms-tts-kan`). This is merely
 > a convenient starting point; once a locally‑trained Kannada VITS model is
 > available it can be swapped in via the `ModelManager` utilities described
 > below.  The architecture and training pipeline themselves do not depend on
@@ -106,7 +106,7 @@ Training Loop:
 
 ### Fine‑tuning Pretrained Checkpoints
 
-The `facebook/mms-tts-kan` model from HuggingFace is downloaded on demand by
+The VITS Hybrid Model (HuggingFace checkpoint `facebook/mms-tts-kan`) is downloaded on demand by
 `src.model_manager.ModelManager.load_vits_model(variant="pretrained")` and
 can be adapted for Kannada-specific training using the existing codebase.  The
 following recipe shows how to initialise a local `VITS` instance with the

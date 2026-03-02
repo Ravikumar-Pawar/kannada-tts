@@ -451,9 +451,9 @@
             <h1>Kannada Text-to-Speech System</h1>
             <p>Advanced Neural TTS with Modern Hybrid Technology</p>
             <div style="margin-top: 15px;">
-                <span class="badge">🚀 VITS Hybrid Approach</span>
-                <span class="badge">⚡ Real-time Inference</span>
-                <span class="badge">📊 Live Metrics</span>
+                <span class="badge">VITS Hybrid Approach</span>
+                <span class="badge">Real-time Inference</span>
+                <span class="badge">Live Metrics</span>
             </div>
             <div id="modelStatus" style="margin-top:12px;">
                 <span class="badge" id="hybridStatus">Hybrid: unknown</span>
@@ -467,7 +467,7 @@
         <div class="main-content" id="mainTabs">
             <!-- Single Synthesis Tab -->
             <div class="card">
-                <h2>🎙️ Single Synthesis</h2>
+                <h2>Single Synthesis</h2>
 
                 <div class="input-group">
                     <label for="textInput">Enter Kannada Text:</label>
@@ -484,8 +484,8 @@
                 <div class="input-group">
                     <label for="approachSelect">Select Approach:</label>
                     <select id="approachSelect">
-                        <option value="hybrid">🔬 Modern Hybrid (VITS) - Recommended</option>
-                        <option value="non_hybrid">📟 Traditional Approach</option>
+                        <option value="hybrid">Modern Hybrid (VITS) - Recommended</option>
+                        <option value="non_hybrid">Traditional Approach</option>
                     </select>
                 </div>
 
@@ -493,7 +493,7 @@
                     <label for="modelVariantSelect">Model Variant:</label>
                     <select id="modelVariantSelect" onchange="prepareSelectedModel()">
                         <option value="default">Default (random init)</option>
-                        <option value="pretrained" selected>Pre-trained Kannada (facebook/mms-tts-kan)</option>
+                        <option value="pretrained" selected>Pre-trained Kannada (VITS Hybrid Model)</option>
                     </select>
                     <button class="button small" id="loadModelBtn" onclick="prepareSelectedModel()">Load</button>
                 </div>
@@ -525,7 +525,7 @@
 
             <!-- Comparison Tab -->
             <div class="card">
-                <h2>⚖️ Side-by-Side Comparison</h2>
+                <h2>Side-by-Side Comparison</h2>
 
                 <div class="input-group">
                     <label for="compareTextInput">Enter Kannada Text:</label>
@@ -550,7 +550,7 @@
                     <label for="hybridVariantSelect">Hybrid model:</label>
                     <select id="hybridVariantSelect" onchange="prepareComparisonModel('hybrid')">
                         <option value="default">Default</option>
-                        <option value="pretrained" selected>Pre-trained Kannada (facebook/mms-tts-kan)</option>
+                        <option value="pretrained" selected>Pre-trained Kannada (VITS Hybrid Model)</option>
                     </select>
                     <button class="button small" onclick="prepareComparisonModel('hybrid')">Load</button>
                 </div>
@@ -573,13 +573,13 @@
                 <div id="compareResult" style="margin-top: 20px; display: none;">
                     <div class="comparison-grid">
                         <div class="approach-card">
-                            <span class="approach-label">🔬 MODERN HYBRID</span>
+                            <span class="approach-label">MODERN HYBRID</span>
                             <h3>VITS-Based</h3>
                             <audio controls class="audio-player" id="hybridAudio"></audio>
                             <div class="metrics-box" id="hybridMetrics"></div>
                         </div>
                         <div class="approach-card">
-                            <span class="approach-label">📟 TRADITIONAL</span>
+                            <span class="approach-label">TRADITIONAL</span>
                             <h3>Tacotron2-Based</h3>
                             <audio controls class="audio-player" id="nonHybridAudio"></audio>
                             <div class="metrics-box" id="nonHybridMetrics"></div>
@@ -593,7 +593,7 @@
 
         <!-- Comparison Section -->
         <div class="comparison-section">
-            <h2>📊 Reference Performance Metrics</h2>
+            <h2>Reference Performance Metrics</h2>
             <div class="info-box">
                 These are benchmark results comparing the Modern Hybrid approach (VITS) with the Traditional approach
                 (Tacotron2) on Kannada text-to-speech tasks.
@@ -787,7 +787,7 @@
                 const metricsHtml = `
                     <div class="metric-row">
                         <span class="metric-label">Approach:</span>
-                        <span class="metric-value">${approach === 'hybrid' ? '🔬 Modern Hybrid (VITS)' : '📟 Traditional'}</span>
+                        <span class="metric-value">${approach === 'hybrid' ? 'Modern Hybrid (VITS)' : 'Traditional'}</span>
                     </div>
                     <div class="metric-row">
                         <span class="metric-label">Inference Time:</span>
@@ -885,7 +885,7 @@
                     const hybridHtml = `
                         <div class="metric-row">
                             <span class="metric-label">Inference Time:</span>
-                            <span class="metric-value">${data.hybrid.inference_time.toFixed(3)}s ⚡</span>
+                            <span class="metric-value">${data.hybrid.inference_time.toFixed(3)}s</span>
                         </div>
                         <div class="metric-row">
                             <span class="metric-label">Sample Rate:</span>

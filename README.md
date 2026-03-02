@@ -30,7 +30,7 @@ Key components of this repository:
 
 * VITS acoustic model with a VAE framework and learned duration predictor
 * Optional HiFiGAN vocoder for waveform synthesis
-* default hybrid path uses the Facebook MMS-TTS Kannada model; later it will be
+* default hybrid path uses the VITS Hybrid Model (Facebook MMS-TTS Kannada checkpoint); later it will be
   replaced with an in-house trained checkpoint once available
 * Audio processing pipeline (noise reduction, prosody enhancement, post-processing)
 * Unified interfaces for training and inference across both hybrid and non-hybrid models
@@ -75,8 +75,8 @@ QUICK START
    inference = VITSInference(vits)
    audio = inference.synthesize("ನಮಸ್ಕಾರ")
 
-   # to fine‑tune a pretrained Facebook/MMS‑TTS model, load the weights via
-   # ``ModelManager`` and pass them into ``VITSTrainer`` (see docs/guides
+  # to fine‑tune a pretrained VITS Hybrid Model (e.g. facebook/mms-tts-kan), load the weights via
+  # ``ModelManager`` and pass them into ``VITSTrainer`` (see docs/guides
    # for a detailed recipe).
 
 4. See Documentation

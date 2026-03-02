@@ -8,12 +8,12 @@ Modern web-based interface for Kannada Text-to-Speech with side-by-side comparis
 
 ## Features
 
-- 🎙️ **Single Synthesis Mode** - Generate speech from Kannada text using either Modern Hybrid or Traditional approach
-- ⚖️ **Side-by-Side Comparison** - Test both approaches simultaneously and see performance metrics
-- 📊 **Live Performance Metrics** - Real-time MCD, SNR, and inference time measurements
-- 🎨 **Modern UI** - Beautiful, responsive interface with real-time audio playback
-- ⚡ **Fast Inference** - Powered by PyTorch with GPU support
-- 🔬 **Research-Grade** - Reference metrics demonstrating Modern Hybrid superiority
+- Single Synthesis Mode - Generate speech from Kannada text using either Modern Hybrid or Traditional approach
+- Side-by-Side Comparison - Test both approaches simultaneously and see performance metrics
+- Live Performance Metrics - Real-time MCD, SNR, and inference time measurements
+- Modern UI - Beautiful, responsive interface with real-time audio playback
+- Fast Inference - Powered by PyTorch with GPU support
+- Research-Grade - Reference metrics demonstrating Modern Hybrid superiority
 
 ## Quick Start
 
@@ -84,7 +84,7 @@ Interactive API documentation available at:
 
 1. Enter Kannada text
 2. Choose approach:
-   - **Modern Hybrid (VITS)** - Recommended (default). When pretrained variant is selected the system uses the Meta AI MMS-TTS Kannada model (`facebook/mms-tts-kan`). The weights are downloaded once and stored under the project’s own `models` directory (e.g. `<repo_root>/models/huggingface`) so that subsequent startups reuse the local copy instead of hitting the network. You can change the location by setting the `KANNADA_TTS_MODEL_DIR` environment variable.
+   - **Modern Hybrid (VITS)** - Recommended (default). When the pretrained variant is selected the system uses the VITS Hybrid Model (pretrained Kannada). The weights are downloaded once and stored under the project’s own `models` directory (e.g. `<repo_root>/models/huggingface`) so that subsequent startups reuse the local copy instead of hitting the network. You can change the location by setting the `KANNADA_TTS_MODEL_DIR` environment variable.
    - **Traditional (Tacotron2)** - For comparison
 3. Choose model variant:
    - **Default** (random-initial weights) for quick tests
