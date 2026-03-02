@@ -1,10 +1,7 @@
-> **Note:** this file has been migrated into the `docs/guides/` directory
-> (see `docs/guides/WEB_APP_GUIDE.md`).  The original is retained here for
-> backwards compatibility but will not be updated further.
-
 # Kannada TTS Web Application
 
-Modern web-based interface for Kannada Text-to-Speech with side-by-side comparison of approaches.
+Modern web-based interface for Kannada Text-to-Speech with side-by-side
+comparison of approaches.
 
 ## Features
 
@@ -201,63 +198,3 @@ Models are initialized with default Kannada-specific parameters:
 ### Slow Startup
 - First startup downloads and initializes models
 - Subsequent runs use cached models
-
-### Port Already in Use
-```bash
-# Use a different port
-uvicorn app:app --port 8001
-```
-
-### Audio Not Playing
-- Check browser audio permissions
-- Ensure speaker/headphones are connected
-- Try a different browser
-
-## Development
-
-### Adding Custom Models
-
-1. Train your model using the training pipeline
-2. Save checkpoint to the `models/` directory at the project root (or override with `KANNADA_TTS_MODEL_DIR`).
-3. Update `model_manager.py` to load your checkpoint
-
-### Extending Functionality
-
-- Add new API endpoints in `app.py`
-- Add frontend features in `static/index.html`
-- Create new metrics in `src/metrics_calculator.py`
-
-## Browser Support
-
-- Chrome/Chromium (recommended)
-- Firefox
-- Safari
-- Edge
-
-## FAQ
-
-**Q: Can I use this with my own trained models?**
-A: Yes! Place your checkpoint files in the project `models/` folder (or set `KANNADA_TTS_MODEL_DIR` to a custom path) and update the model loading code.
-
-**Q: Is the audio data sent to external servers?**
-A: No! Everything runs locally on your machine. The UI is purely client-side JavaScript.
-
-**Q: Can I deploy this to production?**
-A: Yes! Use a production ASGI server like Gunicorn + Uvicorn:
-```bash
-gunicorn -w 4 -k uvicorn.workers.UvicornWorker app:app
-```
-
-**Q: What's the difference between the two approaches?**
-A: See the reference metrics table. Modern Hybrid uses VITS (VAE-based) for better quality and speed. Traditional uses Tacotron2 for baseline comparison.
-
-## License
-
-See LICENSE file in the root directory.
-
-## Support
-
-For issues or questions:
-1. Check the main [README.md](../README.md)
-2. Review [API documentation](http://localhost:8000/docs)
-3. Check troubleshooting section above

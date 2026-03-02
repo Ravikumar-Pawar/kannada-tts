@@ -39,6 +39,10 @@ class ModelManager:
         # Replace with real links once available.  The hybrid URL may be set to
         # the HuggingFace repo identifier so that ``prepare_model`` can use it
         # for explicit downloads via ``from_pretrained``.
+        # known pretrained model URLs (placeholders/demo)
+        # The hybrid entry points to Meta's public MMS-TTS Kannada VITS model.
+        # Once the project trains its own VITS checkpoint this value can be
+        # updated to the new location (or replaced entirely by a local file).
         self.PRETRAINED_URLS = {
             "hybrid": "facebook/mms-tts-kan",  # HF model id (downloaded to hf_cache_dir)
             "non_hybrid": "https://example.com/pretrained/tacotron2_kannada.pth"

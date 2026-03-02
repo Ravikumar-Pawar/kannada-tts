@@ -5,9 +5,10 @@ Standard Inference Pipeline for Non-Hybrid Approach
 import torch
 import numpy as np
 import logging
-import unicodedata
 from typing import Tuple, Optional
 import soundfile as sf
+
+from src.text_utils import normalize_kannada_text, default_kannada_mapping
 
 logger = logging.getLogger(__name__)
 
@@ -42,33 +43,19 @@ class StandardInference:
         
         # Default character mapping for Kannada
         if character_mapping is None:
-            self.character_mapping = self._get_default_kannada_mapping()
+            self.character_mapping = default_kannada_mapping()
         else:
             self.character_mapping = character_mapping
         
         logger.info(f"StandardInference initialized on {device}")
     
-    def _get_default_kannada_mapping(self) -> dict:
-        """Return the default mapping used by the Tacotron2 baseline.
-
-        This static list corresponds to the 132‑character vocabulary that was
-        used during training; keeping it fixed ensures that checkpoints trained
-        with this set remain compatible.  The mapping includes core Kannada
-        letters, vowel signs, diacritics and a few common punctuation marks.
-        Developers may override this by providing a custom `character_mapping`
-        dict when instantiating the class.
-        """
-        # the vocabulary must match the training configuration exactly
-        kannada_chars = [
-            'ಅ', 'ಆ', 'ಇ', 'ಈ', 'ಉ', 'ಊ', 'ಋ', 'ಌ', 'ಎ', 'ಏ', 
-            'ಐ', 'ಒ', 'ಓ', 'ಔ', 'ಘ', 'ಙ', 'ಚ', 'ಛ', 'ಜ', 'ಝ',
-            'ಞ', 'ಟ', 'ಠ', 'ಡ', 'ಢ', 'ಣ', 'ತ', 'ಥ', 'ದ', 'ಧ',
-            'ನ', 'ಪ', 'ಫ', 'ಬ', 'ಭ', 'ಮ', 'ಯ', 'ರ', 'ಲ', 'ವ',
-            'ಶ', 'ಷ', 'ಸ', 'ಹ', 'ಾ', 'ಿ', 'ೀ', 'ುೂ', 'ೃ', 'ೆ',
-            'ೇ', 'ೈ', 'ೊ', 'ೋ', 'ೌ', 'ೃ', 'ಂ', 'ಃ', '್', '|', ' ',
-            '-', '?', '.', ',', '!', ':', ';', '(', ')', '[', ']'
-        ]
-        return {char: idx for idx, char in enumerate(kannada_chars)}
+    # legacy implementation kept for compatibility but it no longer
+    # accurately reflects the current vocabulary (several consonants were
+    # missing, leading to "character not in mapping" warnings).  The
+    # real mapping now comes from ``src.text_utils.default_kannada_mapping``.
+    @staticmethod
+    def _get_default_kannada_mapping() -> dict:
+        return default_kannada_mapping()
     
     def text_to_sequence(self, text: str) -> Tuple[torch.Tensor, torch.Tensor]:
         """
@@ -86,7 +73,7 @@ class StandardInference:
             Character indices tensor, length tensor
         """
         # normalize input string for consistent handling of Kannada script
-        text = unicodedata.normalize('NFC', text)
+        text = normalize_kannada_text(text)
 
         sequence = []
         for char in text:

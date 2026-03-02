@@ -28,6 +28,7 @@ below.
 
 * [VITS Architecture & Training](guides/VITS_GUIDE.md)
 * [Configuration Guide](guides/CONFIG_GUIDE.md)
+* [Web Application Guide](guides/WEB_APP_GUIDE.md)
 
 ### Reference
 
@@ -203,6 +204,12 @@ Poor Audio Quality:
   - Train for more epochs
   - Use post_processing="advanced"
   - Verify input text encoding
+
+Character mapping warnings:
+  - Ensure you are running the latest version of the repository.  The
+    dynamic mapping in `src/text_utils.py` covers the full Kannada unicode
+    block; older hardcoded vocabularies produced warnings and missing
+    characters during non-hybrid inference.
 
 Training Divergence:
   - Reduce learning_rate to 5e-5

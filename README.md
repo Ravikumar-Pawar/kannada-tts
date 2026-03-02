@@ -30,6 +30,8 @@ Key components of this repository:
 
 * VITS acoustic model with a VAE framework and learned duration predictor
 * Optional HiFiGAN vocoder for waveform synthesis
+* default hybrid path uses the Facebook MMS-TTS Kannada model; later it will be
+  replaced with an in-house trained checkpoint once available
 * Audio processing pipeline (noise reduction, prosody enhancement, post-processing)
 * Unified interfaces for training and inference across both hybrid and non-hybrid models
 * Non-hybrid Tacotron2 baseline for benchmarking
@@ -51,9 +53,10 @@ How it works (high level):
    reduction and prosody adjustments.
 
 If you're new to the terminology or curious how the pieces fit together, see
-[docs/TERMINOLOGY.md](docs/TERMINOLOGY.md) for explanations of core concepts.
-To explore a particular area in detail, follow the links in the **Documentation**
-section below.
+[docs/concepts/TERMINOLOGY.md](docs/concepts/TERMINOLOGY.md) for explanations of core concepts.
+The documentation is all contained under the `docs/` directory; the
+**Documentation** section below lists topic‑specific entry points you may
+want to explore (models, web app, hybrid vs non-hybrid comparisons, etc.).
 
 QUICK START
 ===========
@@ -71,6 +74,10 @@ QUICK START
    vits = VITS(num_chars=132, hidden_size=192, mel_channels=80)
    inference = VITSInference(vits)
    audio = inference.synthesize("ನಮಸ್ಕಾರ")
+
+   # to fine‑tune a pretrained Facebook/MMS‑TTS model, load the weights via
+   # ``ModelManager`` and pass them into ``VITSTrainer`` (see docs/guides
+   # for a detailed recipe).
 
 4. See Documentation
    Read docs/README.md for complete guide
@@ -94,7 +101,7 @@ Try the interactive web interface with side-by-side comparison:
    • 🚀 Live baseline comparisons
    • 🎨 Beautiful, responsive UI
 
-See [WEB_APP_README.md](WEB_APP_README.md) for detailed web app documentation.
+See [docs/guides/WEB_APP_GUIDE.md](docs/guides/WEB_APP_GUIDE.md) for detailed web app documentation.  (The original `WEB_APP_README.md` has been copied into the docs folder.)
 
 SYSTEM REQUIREMENTS
 ===================
@@ -316,6 +323,14 @@ CUDA Out of Memory:
 
 Poor Audio Quality:
   Train more epochs or use post_processing="advanced"
+
+Character mapping warnings:
+  If you encounter messages such as ``Character not in mapping`` during
+  synthesis, upgrade to the current codebase.  The new `src/text_utils`
+  module generates a complete Kannada vocabulary dynamically and
+  eliminates these warnings; the older hard‑coded list omitted several
+  consonants.  Re‑create your inference objects after pulling the latest
+  changes.
 
 Slow Inference:
   Use batch processing or smaller model

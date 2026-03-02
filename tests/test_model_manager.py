@@ -81,7 +81,7 @@ def test_prepare_model_hybrid(monkeypatch):
     assert manager.hf_cache_dir.exists()
 
 
-def test_text_normalization_and_mapping():
+def test_text_normalization_and_mapping(caplog):
     """Ensure Kannada text is normalized and mapped consistently.
 
     Both inference paths call `unicodedata.normalize('NFC', ...)` before
@@ -115,3 +115,46 @@ def test_text_normalization_and_mapping():
     seq3, _ = std_inf.text_to_sequence(base)
     seq4, _ = std_inf.text_to_sequence(decomposed)
     assert seq3.tolist() == seq4.tolist(), "Standard mapping should ignore normalization differences"
+
+    # the default mapping should contain the two base consonants we care about
+    for ch in ['ಕ', 'ಗ']:
+        assert ch in std_inf.character_mapping, f"mapping missing '{ch}'"
+
+    # size should at least cover the entire Kannada unicode block
+    from src.text_utils import default_kannada_mapping
+    assert len(std_inf.character_mapping) == len(default_kannada_mapping()), "mapping size mismatch"
+
+    # basic synthesis smoke test using a dummy Tacotron2 that returns
+    # plausible mel/gate tensors so we can verify no runtime error occurs
+    class DummyTacotron2:
+        def to(self, device):
+            return self
+        def eval(self):
+            return self
+        def __call__(self, sequence, lengths, mels=None):
+            # produce fixed-size mel (batch, time, channels) and gate
+            batch = sequence.size(0)
+            time = max(1, sequence.size(1) * 5)
+            mel = torch.zeros(batch, time, 80)
+            gate = torch.zeros(batch, time, 1)
+            return mel, gate, None
+
+    dummy_taco = DummyTacotron2()
+    std_inf2 = StandardInference(dummy_taco, None)
+    # should return a numpy array of length sample_rate (silence) when called
+    # capture logs to ensure no "not in mapping" warnings are triggered
+    caplog.set_level(logging.WARNING)
+    audio = std_inf2.synthesize("ಕನ್ನಡ")
+    assert isinstance(audio, np.ndarray)
+    assert audio.shape[0] == std_inf2.sample_rate or audio.size == 16000
+    # check warnings captured
+    assert "Character not in mapping" not in caplog.text
+
+    # validate VITSTrainer helper that copies HF weights
+    from src.hybrid.models import VITS
+    from src.hybrid.vits_training import VITSTrainer
+
+    vits = VITS(vocab_size=132, mel_channels=80, hidden_size=192)
+    trainer = VITSTrainer(vits)
+    # use the same object as a stand-in for an HF model; state_dict shapes match
+    trainer.load_huggingface_weights(vits)

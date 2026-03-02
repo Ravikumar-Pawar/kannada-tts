@@ -1,6 +1,8 @@
 import sys, os
 sys.path.append(os.path.abspath(os.getcwd()))
-from src.hybrid.inference import HybridInference
+# the hybrid inference class was renamed to VITSInference; we only
+# need the mapping helper here
+from src.text_utils import default_kannada_mapping
 
 # create dummy models with minimal interface to avoid .to
 class DummyModel:
@@ -10,9 +12,10 @@ class DummyModel:
         return self
 
 dummy = DummyModel()
-h = HybridInference(tacotron2_model=dummy, vocoder_model=dummy)
-print('mapping size', len(h.character_mapping))
-print('ka', 'ಕ' in h.character_mapping)
-print('virama', '್' in h.character_mapping)
-print('ga', 'ಗ' in h.character_mapping)
-print('all keys sample', list(h.character_mapping.keys())[:10])
+# instead of instantiating an inference object we can call the util directly
+mapping = default_kannada_mapping()
+print('mapping size', len(mapping))
+print('ka', 'ಕ' in mapping)
+print('virama', '್' in mapping)
+print('ga', 'ಗ' in mapping)
+print('all keys sample', list(mapping.keys())[:10])

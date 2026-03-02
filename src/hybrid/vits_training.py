@@ -29,6 +29,8 @@ class VITSTrainer:
         """
         self.vits = vits_model.to(device)
         self.device = device
+        # if the provided model comes from HuggingFace we may want to track
+        # that information for logging or checkpoint naming; not required.
         
         # Optimizer
         self.optimizer = optim.Adam(self.vits.parameters(), lr=1e-4, betas=(0.9, 0.999))
@@ -253,6 +255,21 @@ class VITSTrainer:
             self.scheduler.load_state_dict(checkpoint['scheduler_state'])
             logger.info(f"VITS checkpoint loaded from {checkpoint_path}")
             return checkpoint['epoch'], checkpoint['metrics']
+
+    def load_huggingface_weights(self, hf_model) -> None:
+        """Copy the state dictionary from a HuggingFace ``VitsModel`` instance.
+
+        The public Meta AI MMS-TTS Kannada checkpoint can be obtained via
+        ``ModelManager.load_vits_model(variant='pretrained')``; the returned
+        object may be passed here so that the trainer's underlying `VITS`
+        network is initialised with those weights prior to resuming training.
+        """
+        try:
+            self.vits.load_state_dict(hf_model.state_dict())
+            logger.info("Loaded HuggingFace weights into local VITS model")
+        except Exception as e:
+            logger.error(f"Failed to load HF weights: {e}")
+            raise
         else:
             logger.warning(f"Checkpoint not found: {checkpoint_path}")
             return 0, {}

@@ -7,8 +7,10 @@ import torch
 import numpy as np
 import logging
 import soundfile as sf
-import unicodedata
 from typing import Tuple, Optional, Dict
+
+# shared helpers for text processing
+from src.text_utils import normalize_kannada_text, default_kannada_mapping
 
 logger = logging.getLogger(__name__)
 
@@ -33,25 +35,18 @@ class VITSInference:
         
         # Default character mapping for Kannada
         if character_mapping is None:
-            self.character_mapping = self._get_default_kannada_mapping()
+            self.character_mapping = default_kannada_mapping()
         else:
             self.character_mapping = character_mapping
         
         logger.info(f"VITSInference initialized on {device}")
     
-    def _get_default_kannada_mapping(self) -> dict:
-        """Dynamically build a mapping covering the Kannada unicode block.
-        This ensures even complex syllables and diacritics are mapped so
-        no characters are left unhandled during inference.
-        """
-        mapping = {}
-        for code in range(0x0C80, 0x0CFF + 1):
-            ch = chr(code)
-            mapping[ch] = len(mapping)
-        for ch in [' ', '-', '?', '.', ',', '!', ':', ';', '(', ')', '[', ']', '|']:
-            if ch not in mapping:
-                mapping[ch] = len(mapping)
-        return mapping
+    # _get_default_kannada_mapping has been superseded by
+    # ``src.text_utils.default_kannada_mapping``; kept for backward
+    # compatibility but simply delegates.
+    @staticmethod
+    def _get_default_kannada_mapping() -> dict:
+        return default_kannada_mapping()
     
     def text_to_sequence(self, text: str) -> Tuple[torch.Tensor, torch.Tensor]:
         """
@@ -71,7 +66,7 @@ placeholder index of 0.
             Character indices tensor, length tensor
         """
         # normalization step ensures canonical representation of Kannada
-        text = unicodedata.normalize('NFC', text)
+        text = normalize_kannada_text(text)
 
         sequence = []
         for char in text:

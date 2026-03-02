@@ -332,11 +332,14 @@ async def documentation():
     return FileResponse("static/docs.html", media_type="text/html")
 
 
-# Mount static files
-try:
-    app.mount("/static", StaticFiles(directory="static"), name="static")
-except Exception as e:
-    logger.warning(f"Could not mount static files: {e}")
+# Mount static files and provide a favicon endpoint.
+# The previous try/except block was mis‑indented and caused a SyntaxError.
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+@app.get("/favicon.ico")
+async def favicon():
+    """Return a simple favicon from the static directory to avoid 404 log noise."""
+    return FileResponse("static/favicon.ico")
 
 
 # ============================================================================

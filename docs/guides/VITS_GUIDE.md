@@ -6,6 +6,13 @@ OVERVIEW
 VITS (Variational Inference Text-to-Speech) is a state-of-the-art end-to-end TTS system
 using Variational Autoencoders (VAE) for improved audio quality and variability control.
 
+> **Note:** the current web demo and quick‑start examples default to using the
+> `facebook/mms-tts-kan` pretrained checkpoint from HuggingFace.  This is merely
+> a convenient starting point; once a locally‑trained Kannada VITS model is
+> available it can be swapped in via the `ModelManager` utilities described
+> below.  The architecture and training pipeline themselves do not depend on
+> the source of the weights.
+
 ```mermaid
 flowchart TD
     Text["Text Input"]
@@ -90,11 +97,45 @@ Loss Function:
 
 Training Loop:
   1. Forward pass: text -> encoder -> text_encoding
-  2. Sample z from posterior: P(z|mel_target)
+  2. Sample z from posterior: P(z|mel_target) (training only)
   3. Generator decodes z to mel_output
   4. Compute three losses
   5. Backward pass with gradient clipping
   6. Update parameters
+
+
+### Fine‑tuning Pretrained Checkpoints
+
+The `facebook/mms-tts-kan` model from HuggingFace is downloaded on demand by
+`src.model_manager.ModelManager.load_vits_model(variant="pretrained")` and
+can be adapted for Kannada-specific training using the existing codebase.  The
+following recipe shows how to initialise a local `VITS` instance with the
+pretrained weights before resuming training on your own dataset:
+
+```python
+from src.model_manager import ModelManager
+from src.hybrid.models import VITS
+from src.hybrid.vits_training import VITSTrainer
+
+manager = ModelManager()
+hf_info = manager.load_vits_model(variant="pretrained")
+# hf_info may be a dict containing {'hf': True, 'model': hf_model, ...}
+hf_model = hf_info.get('model')
+
+# create a matching VITS instance and copy weights
+vits = VITS(vocab_size=hf_model.config.vocab_size,
+            mel_channels=hf_model.config.mel_channels,
+            hidden_size=hf_model.config.hidden_size)
+vits.load_state_dict(hf_model.state_dict())
+
+trainer = VITSTrainer(vits, device="cuda")
+# continue training as usual with your prepared dataloaders
+```
+
+Because the public model already contains all of the canonical Kannada
+characters, fine‑tuning simply requires the same preprocessing pipeline used
+for training from scratch; no special conversion script is necessary.  Lower
+learning rates (e.g. 1e-5) are recommended when adapting a pretrained model.
 
 Optimization Settings:
   Optimizer: Adam
@@ -137,6 +178,13 @@ Character Mapping (Kannada):
   - 16 consonant + vowel combinations
   - Punctuation marks
   - Special symbols
+
+  Both the hybrid and non-hybrid inference pipelines now use the same
+  dynamically generated vocabulary (see `src/text_utils.py`).  earlier versions
+  of the repository hard‑coded a _subset_ of the Kannada alphabet for the
+  Tacotron2 baseline which resulted in missing letters such as "ಕ" and "ಗ",
+  triggering `Character not in mapping` warnings; the current design avoids
+  that problem entirely.
 
 Text Normalization:
   Before any tokenization step the input string is normalized to
