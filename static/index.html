@@ -482,18 +482,10 @@
                 </div>
 
                 <div class="input-group">
-                    <label for="approachSelect">Select Approach:</label>
-                    <select id="approachSelect">
-                        <option value="hybrid">Modern Hybrid (VITS) - Recommended</option>
-                        <option value="non_hybrid">Traditional Approach</option>
-                    </select>
-                </div>
-
-                <div class="input-group">
-                    <label for="modelVariantSelect">Model Variant:</label>
-                    <select id="modelVariantSelect" onchange="prepareSelectedModel()">
-                        <option value="default">Default (random init)</option>
-                        <option value="pretrained" selected>Pre-trained Kannada (VITS Hybrid Model)</option>
+                    <label for="modelSelect">Select Model:</label>
+                    <select id="modelSelect" onchange="prepareSelectedModel()">
+                        <option value="hybrid|pretrained" selected>Hybrid VITS model</option>
+                        <option value="non_hybrid|pretrained">Traditional Tacotron2 model</option>
                     </select>
                     <button class="button small" id="loadModelBtn" onclick="prepareSelectedModel()">Load</button>
                 </div>
@@ -549,16 +541,14 @@
                 <div class="input-group">
                     <label for="hybridVariantSelect">Hybrid model:</label>
                     <select id="hybridVariantSelect" onchange="prepareComparisonModel('hybrid')">
-                        <option value="default">Default</option>
-                        <option value="pretrained" selected>Pre-trained Kannada (VITS Hybrid Model)</option>
+                        <option value="pretrained" selected>Hybrid VITS model</option>
                     </select>
                     <button class="button small" onclick="prepareComparisonModel('hybrid')">Load</button>
                 </div>
                 <div class="input-group">
                     <label for="nonHybridVariantSelect">Non-hybrid model:</label>
                     <select id="nonHybridVariantSelect" onchange="prepareComparisonModel('non_hybrid')">
-                        <option value="default">Default</option>
-                        <option value="pretrained">Pre-trained Kannada</option>
+                        <option value="pretrained">Traditional Tacotron2 model</option>
                     </select>
                     <button class="button small" onclick="prepareComparisonModel('non_hybrid')">Load</button>
                 </div>
@@ -673,10 +663,17 @@
             document.getElementById(elementId).style.display = 'block';
         }
 
+        // Helper to parse combined model dropdown value
+        // we only expose pretrained models in the UI so the second part is always "pretrained"
+        function getSelectedModel() {
+            const val = document.getElementById('modelSelect').value;
+            const [approach, variant] = val.split('|');
+            return { approach, variant };
+        }
+
         // Prepare a model based on dropdown selection in single synthesis
         async function prepareSelectedModel() {
-            const approach = document.getElementById('approachSelect').value;
-            const variant = document.getElementById('modelVariantSelect').value;
+            const { approach, variant } = getSelectedModel();
             try {
                 showLoading('singleLoading');
                 const resp = await fetch(`${API_BASE}/models/prepare`, {
@@ -742,8 +739,7 @@
         // Synthesize single text
         async function synthesize() {
             const text = document.getElementById('textInput').value;
-            const approach = document.getElementById('approachSelect').value;
-            const variant = document.getElementById('modelVariantSelect').value;
+            const { approach, variant } = getSelectedModel();
             const emotion = document.getElementById('emotionSelect').value;
             // ensure pretrained model is prepared if selected
             if (variant === 'pretrained') {
@@ -824,8 +820,8 @@
         }
 
         // Toggle emotion selector availability based on chosen approach
-        document.getElementById('approachSelect').addEventListener('change', (e) => {
-            const approach = e.target.value;
+        document.getElementById('modelSelect').addEventListener('change', (e) => {
+            const approach = e.target.value.split('|')[0];
             const emo = document.getElementById('emotionSelect');
             if (approach === 'hybrid') {
                 emo.disabled = false;
@@ -971,11 +967,12 @@
 
         // Set default demo text on page load
         window.addEventListener('load', () => {
-            document.getElementById('textInput').value = 'ನಮಸ್ಕಾರ, ಕನ್ನಡ ವಾಕ್ ಸಂಶ್ಲೇಷಣಾ ವ್ಯವಸ್ಥೆಗೆ ಸ್ವಾಗತ';
-            document.getElementById('compareTextInput').value = 'ನಮಸ್ಕಾರ, ಕನ್ನಡ ವಾಕ್ ಸಂಶ್ಲೇಷಣಾ ವ್ಯವಸ್ಥೆಗೆ ಸ್ವಾಗತ';
+            const sampleText = 'ನಮಸ್ಕಾರ ಎಲ್ಲರಿಗೂ, ಇದು ಕನ್ನಡ ಪಠ್ಯದಿಂದ ಭಾಷಣಕ್ಕೆ ಪರಿವರ್ತಿಸುವ ವ್ಯವಸ್ಥೆಯ ಡೆಮೊ ಆಗಿದೆ. ಈ ವ್ಯವಸ್ಥೆ ಕನ್ನಡ ಪಠ್ಯವನ್ನು ಸಹಜ ಹಾಗೂ ಸ್ಪಷ್ಟ ಧ್ವನಿಯಾಗಿ ಪರಿವರ್ತಿಸುತ್ತದೆ. ವಿದ್ಯಾರ್ಥಿಗಳು, ಶಿಕ್ಷಕರು ಮತ್ತು ಸಾಮಾನ್ಯ ಬಳಕೆದಾರರು ಇದರಿಂದ ಬಹಳ ಪ್ರಯೋಜನ ಪಡೆಯಬಹುದು.';
+            document.getElementById('textInput').value = sampleText;
+            document.getElementById('compareTextInput').value = sampleText;
             // refresh model cache badges and set initial UI state
             refreshModelStatus();
-            document.getElementById('approachSelect').dispatchEvent(new Event('change'));
+            document.getElementById('modelSelect').dispatchEvent(new Event('change'));
         });
     </script>
 </body>

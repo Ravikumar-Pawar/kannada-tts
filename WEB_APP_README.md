@@ -83,15 +83,13 @@ Interactive API documentation available at:
 ### Single Synthesis Tab
 
 1. Enter Kannada text
-2. Choose approach:
-   - **Modern Hybrid (VITS)** - Recommended (default). When the pretrained variant is selected the system uses the VITS Hybrid Model (pretrained Kannada). The weights are downloaded once and stored under the project’s own `models` directory (e.g. `<repo_root>/models/huggingface`) so that subsequent startups reuse the local copy instead of hitting the network. You can change the location by setting the `KANNADA_TTS_MODEL_DIR` environment variable.
-   - **Traditional (Tacotron2)** - For comparison
-3. Choose model variant:
-   - **Default** (random-initial weights) for quick tests
-   - **Pre-trained Kannada** (auto‑downloaded or generated) — use the dropdown or click "Load" to prepare the model before synthesis
-4. Select emotion (Hybrid only)
-5. Click "Synthesize Speech"
-6. Listen to generated audio and view inference metrics
+2. Choose a model from the dropdown (only two options are shown):
+   - **Hybrid VITS model** *(default)*
+   - **Traditional Tacotron2 model**
+   Click "Load" if you want to ensure the selected model is downloaded/prepared prior to synthesis – the service always uses the pretrained weights.
+3. Select emotion (enabled only when the hybrid model is selected)
+4. Click "Synthesize Speech"
+5. Listen to generated audio and view inference metrics
 
 ### Comparison Tab
 
