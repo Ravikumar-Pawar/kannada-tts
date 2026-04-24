@@ -139,18 +139,28 @@ class KannadaG2P:
                 phoneme = self.consonants[char]
                 j = i + 1
                 
+                # Check for halant (virama) - no vowel
+                has_halant = False
+                if j < len(text) and text[j] == '्':
+                    has_halant = True
+                    phoneme = phoneme[:-1] if phoneme.endswith('a') else phoneme  # Remove inherent vowel
+                    j += 1
+                
                 # Check for vowel modifier (matra)
                 has_matra = False
                 if j < len(text) and text[j] in self.matras:
                     matra_phoneme = self.matras[text[j]]
                     if matra_phoneme:  # Not empty
-                        phoneme += matra_phoneme[2:] if matra_phoneme.startswith('aa') else matra_phoneme
+                        # Replace inherent 'a' with the matra vowel
+                        if phoneme.endswith('a'):
+                            phoneme = phoneme[:-1] + matra_phoneme
+                        else:
+                            phoneme = phoneme + matra_phoneme
                     has_matra = True
                     j += 1
                 
-                # If no matra, add inherent 'a' vowel
-                if not has_matra and char not in text[j:j+1] or (j < len(text) and text[j] != '्'):
-                    phoneme += 'a'  # Inherent vowel
+                # If no matra and no halant, keep inherent 'a' vowel
+                # Just ensure it's already included from consonants dict
                 
                 phonemes.append(phoneme)
                 i = j

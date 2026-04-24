@@ -13,8 +13,8 @@ import os
 # Add parent directory to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from hkl_vits.hkl_vits_model import HKLVITS
-from hkl_vits.kannada_g2p import KannadaG2P
+from .hkl_vits_model import HKLVITS
+from .kannada_g2p import KannadaG2P
 
 
 class HKLVITSInference:
@@ -88,15 +88,18 @@ class HKLVITSInference:
             kannada_text: Kannada text string
         
         Returns:
-            Tuple of (text_ids, phoneme_ids) tensors
+            Tuple of (grapheme_ids, phoneme_ids) tensors
         """
-        # Convert text to grapheme IDs
-        grapheme_ids = torch.tensor(
-            [ord(c) for c in kannada_text if ord(c) >= 2944 and ord(c) <= 3007],  # Kannada range
-            dtype=torch.long
-        ).unsqueeze(0)  # Add batch dimension
+        # Convert text to grapheme IDs (character codes)
+        grapheme_ids = []
+        for c in kannada_text:
+            # Include Kannada characters in range 0x0C80-0x0CFF
+            if 0x0C80 <= ord(c) <= 0x0CFF:
+                grapheme_ids.append(ord(c))
         
-        # Convert text to phoneme IDs
+        grapheme_ids = torch.tensor(grapheme_ids, dtype=torch.long).unsqueeze(0)  # Add batch dimension
+        
+        # Convert text to phoneme IDs using G2P converter
         phoneme_ids, _ = self.g2p.batch_text_to_phoneme_ids([kannada_text])
         
         return grapheme_ids.to(self.device), phoneme_ids.to(self.device)
@@ -341,76 +344,69 @@ class InteractiveInference:
 
 
 def main():
-    parser = argparse.ArgumentParser(description='HKL-VITS Inference')
-    parser.add_argument(
-        '--config',
-        type=str,
-        default='configs/hkl_vits_config.json',
-        help='Path to config file'
-    )
-    parser.add_argument(
-        '--checkpoint',
-        type=str,
-        required=True,
-        help='Path to model checkpoint'
-    )
-    parser.add_argument(
-        '--text',
-        type=str,
-        default=None,
-        help='Input text (if not provided, run interactive mode)'
-    )
-    parser.add_argument(
-        '--output',
-        type=str,
-        default='output.wav',
-        help='Output audio file path'
-    )
-    parser.add_argument(
-        '--interactive',
-        action='store_true',
-        help='Run in interactive mode'
-    )
-    parser.add_argument(
-        '--gpu',
-        type=int,
-        default=0,
-        help='GPU device ID'
-    )
-    parser.add_argument(
-        '--temperature',
-        type=float,
-        default=0.667,
-        help='Sampling temperature'
-    )
-    parser.add_argument(
-        '--length_scale',
-        type=float,
-        default=1.0,
-        help='Duration scale factor'
-    )
+    # Load configuration
+    config_path = 'configs/hkl_vits_config.json'
     
-    args = parser.parse_args()
+    with open(config_path, 'r', encoding='utf-8') as f:
+        config = json.load(f)
+    
+    # Auto-find latest checkpoint
+    checkpoint_dir = config['logging']['checkpoint_dir']
+    checkpoint_path = Path(checkpoint_dir)
+    
+    if not checkpoint_path.exists():
+        print(f"✗ No checkpoints found in: {checkpoint_dir}")
+        print(f"Please train a model first using: python training/train_hkl_vits.py")
+        sys.exit(1)
+    
+    checkpoints = sorted(checkpoint_path.glob('hkl_vits_epoch_*.pt'),
+                        key=lambda p: int(p.stem.split('_')[-1]),
+                        reverse=True)
+    
+    if not checkpoints:
+        print(f"✗ No model checkpoints found. Please train a model first.")
+        sys.exit(1)
+    
+    checkpoint = str(checkpoints[0])
     
     # Setup device
-    device = f'cuda:{args.gpu}' if torch.cuda.is_available() else 'cpu'
-    
-    if args.interactive:
-        # Interactive mode
-        interactive = InteractiveInference(args.config, args.checkpoint, device=device)
-        interactive.run()
-    elif args.text:
-        # Single text synthesis
-        inference = HKLVITSInference(args.config, args.checkpoint, device=device)
-        waveform = inference.synthesize(
-            kannada_text=args.text,
-            temperature=args.temperature,
-            length_scale=args.length_scale,
-            save_path=args.output
-        )
-        print(f"Synthesis complete! Audio saved to {args.output}")
+    if torch.cuda.is_available():
+        device = 'cuda'
+        print(f"✓ Using GPU: {torch.cuda.get_device_name(0)}")
     else:
-        print("Please provide either --text or --interactive flag")
+        device = 'cpu'
+        print("⚠ Using CPU (inference may be slow)")
+    
+    print(f"\n{'='*60}")
+    print(f"Inference Configuration:")
+    print(f"{'='*60}")
+    print(f"Config: {config_path}")
+    print(f"Checkpoint: {checkpoint}")
+    print(f"Device: {device}")
+    print(f"{'='*60}\n")
+    
+    # Check for command-line text input
+    if len(sys.argv) > 1 and not sys.argv[1].startswith('-'):
+        # Simple single text synthesis
+        kannada_text = sys.argv[1]
+        output_file = sys.argv[2] if len(sys.argv) > 2 else 'output.wav'
+        
+        print(f"Synthesizing: {kannada_text}")
+        inference = HKLVITSInference(config_path, checkpoint, device=device)
+        waveform = inference.synthesize(
+            kannada_text=kannada_text,
+            temperature=config['inference']['temperature'],
+            save_path=output_file
+        )
+        print(f"✓ Synthesis complete! Saved to {output_file}")
+    else:
+        # Run interactive mode
+        print("Starting Interactive Synthesis Mode...")
+        print("Type Kannada text and press Enter to synthesize")
+        print("Type 'exit' to quit\n")
+        
+        interactive = InteractiveInference(config_path, checkpoint, device=device)
+        interactive.run()
 
 
 if __name__ == '__main__':

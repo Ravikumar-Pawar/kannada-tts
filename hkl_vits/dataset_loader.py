@@ -10,7 +10,7 @@ import json
 import librosa
 from pathlib import Path
 
-from kannada_g2p import KannadaG2P
+from .kannada_g2p import KannadaG2P
 
 
 class KannadaTTSDataset(Dataset):
@@ -125,17 +125,31 @@ class KannadaTTSDataset(Dataset):
         return waveform.squeeze(0)
 
     def _extract_pitch(self, waveform: torch.Tensor) -> np.ndarray:
-        """Extract fundamental frequency (F0) using librosa"""
-        audio = waveform.numpy()
+        """Extract fundamental frequency (F0) using librosa PYIN algorithm"""
+        audio = waveform.numpy() if isinstance(waveform, torch.Tensor) else waveform
         
-        # Extract pitch using pYIN algorithm
-        f0 = librosa.yin(
-            audio,
-            fmin=self.f0_min,
-            fmax=self.f0_max,
-            sr=self.sample_rate,
-            hop_length=self.hop_length
-        )
+        try:
+            # Extract pitch using pYIN algorithm (more robust than basic YIN)
+            f0, voiced_flag, voiced_probs = librosa.pyin(
+                audio,
+                fmin=self.f0_min,
+                fmax=self.f0_max,
+                sr=self.sample_rate,
+                hop_length=self.hop_length
+            )
+            # Fill NaN values with mean F0
+            f0_mean = np.nanmean(f0)
+            f0 = np.nan_to_num(f0, nan=f0_mean)
+        except Exception as e:
+            # Fallback to YIN if PYIN fails
+            f0 = librosa.yin(
+                audio,
+                fmin=self.f0_min,
+                fmax=self.f0_max,
+                sr=self.sample_rate,
+                hop_length=self.hop_length
+            )
+            f0 = np.nan_to_num(f0, nan=0.0)
         
         return f0
 

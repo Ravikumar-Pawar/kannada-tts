@@ -31,11 +31,42 @@ HiFi-GAN Generator
 Waveform Output
 ```
 
+## Quick Start
+
+Get started in minutes:
+
+```bash
+# 1. Setup (5 min)
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+
+# 2. Download Dataset (10-30 min)
+python dataset.py full
+
+# 3. Configure (1 min)
+# Edit configs/hkl_vits_config.json and set:
+# "data.dataset_path": "data/kannada_tts_dataset"
+
+# 4. Train (hours to days - just run it!)
+python training/train_hkl_vits.py
+
+# 5. Evaluate (auto-finds latest checkpoint)
+python training/evaluate.py
+
+# 6. Generate Speech (interactive mode)
+python hkl_vits/inference.py
+```
+
+**That's it!** No complex arguments needed. Everything is configured in `configs/hkl_vits_config.json`.
+
 ## Project Structure
 
 ```
 kannada-hkl-vits/
 ├── project_guide.txt              # Comprehensive technical guide
+├── dataset.py                     # Dataset management tool
+├── requirements.txt               # Python dependencies
 ├── configs/
 │   └── hkl_vits_config.json       # Model and training configuration
 ├── hkl_vits/
@@ -51,11 +82,15 @@ kannada-hkl-vits/
 │   └── utils.py                   # Utility functions
 ├── training/
 │   ├── train_hkl_vits.py          # Training script
-│   └── evaluate.py                # Evaluation metrics
-├── data/                          # Dataset directory (create this)
-│   ├── wav/                       # Audio files
-│   └── txt/                       # Text transcriptions
-└── logs/                          # Training logs and checkpoints
+│   └── evaluate.py                # Evaluation and testing metrics
+├── data/                          # Dataset directory
+│   └── kannada_tts_dataset/
+│       ├── wav/                   # Audio files
+│       ├── txt/                   # Text transcriptions
+│       └── metadata.tsv           # Dataset metadata
+├── logs/                          # Training logs
+├── checkpoints/                   # Model checkpoints
+└── docs/                          # Documentation
 ```
 
 ## Installation
@@ -64,79 +99,137 @@ kannada-hkl-vits/
 
 - Python 3.8+
 - PyTorch 1.9+
-- torchaudio
-- librosa
-- numpy
-- scipy
+- GPU with CUDA support (optional but recommended)
 
-### Setup
+### Step-by-Step Setup
 
 ```bash
-# Clone repository
-git clone <repo_url>
+# 1. Clone repository and navigate to directory
 cd kannada-hkl-vits
 
-# Create virtual environment
+# 2. Create virtual environment
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# Install dependencies
-pip install torch torchaudio librosa numpy scipy
+# Activate (choose based on OS):
+# Linux/Mac:
+source venv/bin/activate
+# Windows:
+venv\Scripts\activate
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Verify installation
+python -c "import torch; print('✓ PyTorch:', torch.__version__); print('✓ CUDA Available:', torch.cuda.is_available())"
 ```
 
-## Dataset Preparation
+## Dataset Download and Preparation
 
-### Expected Dataset Structure
+### Option 1: Automated Download from OpenSLR (Recommended)
 
+The easiest way to get the Kannada TTS dataset from [OpenSLR](https://openslr.org/):
+
+```bash
+# Download + Extract + Prepare (all in one, ~20GB download)
+python dataset.py full
+
+# Or step by step:
+
+# Step 1: Download dataset (~20GB)
+python dataset.py download
+
+# Step 2: Extract and prepare text files
+python dataset.py prepare
+
+# Step 3: Analyze dataset (optional, generates statistics)
+python dataset.py analyze --data-dir data/kannada_tts_dataset --save-report
 ```
-dataset/
-├── wav/                    # Audio files (.wav format)
+
+**Dataset Details:**
+- **Source**: OpenSLR - Male Kannada speaker
+- **Size**: ~20GB compressed, ~40GB uncompressed
+- **Samples**: 1000+ audio files with transcriptions
+- **Sample Rate**: 16kHz (will be resampled to 22050Hz)
+- **Format**: WAV + TSV metadata
+
+### Option 2: Organize Custom Dataset
+
+If you have your own Kannada audio and text data:
+
+```bash
+# Organize your data into the correct structure
+python dataset.py organize \
+    --data-dir data/kannada_tts_dataset \
+    --audio-source /path/to/your/audio/files \
+    --text-source /path/to/your/text/files \
+    --sample-rate 22050
+```
+
+**Directory Structure Required:**
+```
+your_dataset/
+├── audio_files/
 │   ├── sample_001.wav
 │   ├── sample_002.wav
 │   └── ...
-└── txt/                    # Text transcriptions
-    ├── sample_001.txt
+└── text_files/
+    ├── sample_001.txt    # Must match audio filename
     ├── sample_002.txt
     └── ...
 ```
 
-### Audio Requirements
+**Text File Requirements:**
+- UTF-8 encoding
+- Kannada script (Unicode range: U+0C80-U+0CFF)
+- One transcription per file
+- Plain text format
 
-- **Sample Rate**: 22050 Hz (configurable)
-- **Format**: WAV (mono or stereo)
-- **Duration**: 1-10 seconds per sample recommended
-- **Quality**: High quality, minimal background noise
+**Audio File Requirements:**
+- WAV format (mono or stereo)
+- Recommended sample rate: 22050 Hz (will be resampled if different)
+- Duration: 1-10 seconds per sample
+- Quality: Clear speech, minimal background noise
+- Silence at beginning/end will be trimmed
 
-### Text Requirements
+### Validate Dataset
 
-- **Encoding**: UTF-8
-- **Language**: Kannada script
-- **Format**: Plain text (one line per file)
-
-### Create Dataset
+After preparation, validate your dataset:
 
 ```bash
-python hkl_vits/utils.py prepare_dataset --data_dir path/to/dataset
+# Analyze and validate
+python dataset.py analyze --data-dir data/kannada_tts_dataset --save-report
+
+# This generates statistics:
+# - Total samples
+# - Audio duration range
+# - Text length statistics
+# - Missing files
+# - Quality issues
 ```
 
 ## Training
 
-### Basic Training
+All training settings are configured in [configs/hkl_vits_config.json](configs/hkl_vits_config.json). Simply run:
 
 ```bash
-python training/train_hkl_vits.py \
-    --config configs/hkl_vits_config.json \
-    --data_dir path/to/dataset \
-    --num_epochs 100 \
-    --gpu 0
+python training/train_hkl_vits.py
 ```
 
-### Training Configuration
+That's it! The script will:
+- Read all settings from the config file
+- Auto-detect GPU or use CPU
+- Create logs and checkpoint directories
+- Save checkpoints during training
 
-Edit `configs/hkl_vits_config.json` to customize:
+### Configuration
+
+Before training, update the config file with your settings:
 
 ```json
 {
+  "data": {
+    "dataset_path": "data/kannada_tts_dataset"  // Update this path to your dataset
+  },
   "training": {
     "batch_size": 32,
     "learning_rate": 0.0002,
@@ -153,38 +246,179 @@ Edit `configs/hkl_vits_config.json` to customize:
 }
 ```
 
-### Resume Training
+### Expected Output
 
-```bash
-python training/train_hkl_vits.py \
-    --config configs/hkl_vits_config.json \
-    --data_dir path/to/dataset \
-    --resume checkpoints/hkl_vits_epoch_50.pt \
-    --gpu 0
+```
+════════════════════════════════════════════════════════════
+Training Configuration:
+════════════════════════════════════════════════════════════
+Config: configs/hkl_vits_config.json
+Dataset: data/kannada_tts_dataset
+Epochs: 100
+Batch Size: 32
+Learning Rate: 0.0002
+Device: cuda:0
+════════════════════════════════════════════════════════════
+
+Training logs saved to: logs/training_20240311_143022.log
+Checkpoints saved to: checkpoints/
+
+Epoch [1/100]
+  Training...
+  Saving checkpoint: checkpoints/hkl_vits_epoch_5.pt
+  ...
 ```
 
-## Inference
+## Testing and Evaluation
 
-### Single Text Synthesis
+### Evaluate Model
 
-```bash
-python hkl_vits/inference.py \
-    --config configs/hkl_vits_config.json \
-    --checkpoint checkpoints/hkl_vits_epoch_100.pt \
-    --text "ನಮಸ್ತೆ ಪ್ರಪಂಚ" \
-    --output output.wav
-```
-
-### Interactive Synthesis
+Simply run the evaluation script - it automatically finds the latest checkpoint:
 
 ```bash
-python hkl_vits/inference.py \
-    --config configs/hkl_vits_config.json \
-    --checkpoint checkpoints/hkl_vits_epoch_100.pt \
-    --interactive
+python training/evaluate.py
 ```
 
-### Batch Synthesis
+Done! The script will:
+- Auto-detect the latest checkpoint from `checkpoints/`
+- Load the dataset from config
+- Run complete evaluation
+- Save report to `checkpoints/evaluation_report.json`
+
+### Evaluation Output
+
+```
+════════════════════════════════════════════════════════════
+Evaluation Configuration:
+════════════════════════════════════════════════════════════
+Config: configs/hkl_vits_config.json
+Checkpoint: checkpoints/hkl_vits_epoch_100.pt
+Dataset: data/kannada_tts_dataset
+Batch Size: 32
+Device: cuda
+════════════════════════════════════════════════════════════
+
+✓ Evaluation complete! Report saved to: checkpoints/evaluation_report.json
+```
+
+### View Evaluation Results
+
+```bash
+# Display the evaluation report
+cat checkpoints/evaluation_report.json
+```
+
+The report includes:
+- **PESQ** (Perceptual Evaluation of Speech Quality)
+- **MCD** (Mel-Cepstral Distortion)
+- **Pitch Accuracy** metrics
+- **Energy Accuracy** metrics
+- **Intelligibility** scores
+
+### Test with Sample Sentences
+
+```python
+from hkl_vits.inference import HKLVITSInference
+from pathlib import Path
+import os
+
+# Initialize inference (auto-loads latest checkpoint)
+inference = HKLVITSInference(
+    config_path='configs/hkl_vits_config.json',
+    checkpoint_path='checkpoints/hkl_vits_epoch_100.pt',
+    device='cuda'
+)
+
+# Test sentences
+test_sentences = [
+    'ನಮಸ್ತೆ ಪ್ರಪಂಚ',           # Hello World
+    'ಧನ್ಯವಾದ',                    # Thank you
+    'ಈ ಮಾದರಿಯ ಪ್ರಯೋಗ ಸಾಫಲ್ಯ',  # This experiment is successful
+]
+
+# Create output directory
+os.makedirs('test_outputs', exist_ok=True)
+
+# Synthesize each test sentence
+for i, text in enumerate(test_sentences, 1):
+    waveform = inference.synthesize(
+        kannada_text=text,
+        output_path=f'test_outputs/test_{i:02d}.wav'
+    )
+    print(f"✓ Generated: test_{i:02d}.wav ({text})")
+```
+```
+
+## Inference and Synthesis
+
+### Interactive Mode (Default)
+
+Simply run the script with no arguments to start interactive synthesis:
+
+```bash
+python hkl_vits/inference.py
+```
+
+The script will:
+- Auto-load the latest checkpoint
+- Auto-detect GPU
+- Start interactive mode where you can type Kannada text
+
+Example:
+```
+Starting Interactive Synthesis Mode...
+Type Kannada text and press Enter to synthesize
+Type 'exit' to quit
+
+ನಮಸ್ತೆ ಪ್ರಪಂಚ
+Synthesizing: ನಮಸ್ತೆ ಪ್ರಪಂಚ
+✓ Synthesis complete! Saved to outputs/output_001.wav
+```
+
+### Single Sentence Synthesis
+
+Generate speech from a single Kannada sentence:
+
+```bash
+# Simple - saves as output.wav
+python hkl_vits/inference.py "ನಮಸ್ತೆ ಪ್ರಪಂಚ"
+
+# With custom output filename
+python hkl_vits/inference.py "ಧನ್ಯವಾದ" my_output.wav
+```
+
+### Batch Synthesis (Python)
+
+Generate speech for multiple texts programmatically:
+
+```python
+from hkl_vits.inference import HKLVITSInference
+import os
+
+# Initialize (auto-loads latest checkpoint)
+inference = HKLVITSInference(
+    config_path='configs/hkl_vits_config.json',
+    checkpoint_path='checkpoints/hkl_vits_epoch_100.pt',
+    device='cuda'  # auto-detected
+)
+
+# Synthesize multiple texts
+texts = [
+    'ನಮಸ್ತೆ',
+    'ಧನ್ಯವಾದ',
+    'ಎಲ್ಲಾ ಪ್ರಶ್ನೆಗಳಿಗೆ'
+]
+
+os.makedirs('outputs', exist_ok=True)
+for i, text in enumerate(texts, 1):
+    waveform = inference.synthesize(
+        kannada_text=text,
+        output_path=f'outputs/sample_{i:03d}.wav'
+    )
+    print(f"✓ {i}. {text}")
+```
+
+### Advanced Control
 
 ```python
 from hkl_vits.inference import HKLVITSInference
@@ -194,13 +428,19 @@ inference = HKLVITSInference(
     checkpoint_path='checkpoints/hkl_vits_epoch_100.pt'
 )
 
-texts = [
-    'ನಮಸ್ತೆ',
-    'ಧನ್ಯವಾದ',
-    'ಎಲ್ಲಾ ಪ್ರಶ್ನೆಗಳಿಗೆ'
-]
+# Synthesize with temperature control (0.5-1.0)
+waveform = inference.synthesize(
+    kannada_text="ನಮಸ್ತೆ",
+    temperature=0.8,  # Lower = more stable
+    output_path='output.wav'
+)
 
-waveforms = inference.synthesize_batch(texts, save_dir='outputs')
+# Synthesize with custom duration
+waveform = inference.synthesize(
+    kannada_text="ನಮಸ್ತೆ",
+    length_scale=1.2,  # 1.2x slower
+    output_path='output_slow.wav'
+)
 ```
 
 ## Model Components

@@ -385,51 +385,50 @@ class HKLVITSTrainer:
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Train HKL-VITS model')
-    parser.add_argument(
-        '--config',
-        type=str,
-        default='configs/hkl_vits_config.json',
-        help='Path to config file'
-    )
-    parser.add_argument(
-        '--data_dir',
-        type=str,
-        required=True,
-        help='Path to dataset directory'
-    )
-    parser.add_argument(
-        '--num_epochs',
-        type=int,
-        default=None,
-        help='Number of epochs'
-    )
-    parser.add_argument(
-        '--resume',
-        type=str,
-        default=None,
-        help='Path to checkpoint to resume from'
-    )
-    parser.add_argument(
-        '--gpu',
-        type=int,
-        default=0,
-        help='GPU device ID'
-    )
+    # Default config path - can be overridden if needed
+    config_path = 'configs/hkl_vits_config.json'
     
-    args = parser.parse_args()
+    # Load config to get all settings
+    with open(config_path, 'r', encoding='utf-8') as f:
+        config = json.load(f)
     
-    # Setup device
-    device = f'cuda:{args.gpu}' if torch.cuda.is_available() else 'cpu'
+    # Get settings from config
+    data_dir = config['data']['dataset_path']
+    num_epochs = config['training']['num_epochs']
+    gpu_id = 0  # Default GPU ID
+    resume_checkpoint = None  # No automatic resume
     
-    # Create trainer
-    trainer = HKLVITSTrainer(args.config, device=device)
+    # Setup device - auto-detect best available GPU
+    if torch.cuda.is_available():
+        device = f'cuda:{gpu_id}'
+        print(f"✓ Using GPU: {torch.cuda.get_device_name(gpu_id)}")
+    else:
+        device = 'cpu'
+        print("⚠ GPU not available, using CPU (training will be slow)")
     
-    # Train
+    print(f"\n{'='*60}")
+    print(f"Training Configuration:")
+    print(f"{'='*60}")
+    print(f"Config: {config_path}")
+    print(f"Dataset: {data_dir}")
+    print(f"Epochs: {num_epochs}")
+    print(f"Batch Size: {config['training']['batch_size']}")
+    print(f"Learning Rate: {config['training']['learning_rate']}")
+    print(f"Device: {device}")
+    print(f"{'='*60}\n")
+    
+    # Verify dataset exists
+    if not os.path.exists(data_dir):
+        print(f"✗ Dataset not found at: {data_dir}")
+        print(f"Please update 'data.dataset_path' in {config_path}")
+        sys.exit(1)
+    
+    # Create trainer and train
+    trainer = HKLVITSTrainer(config_path, device=device)
     trainer.train(
-        data_dir=args.data_dir,
-        num_epochs=args.num_epochs,
-        resume_checkpoint=args.resume
+        data_dir=data_dir,
+        num_epochs=num_epochs,
+        resume_checkpoint=resume_checkpoint
     )
 
 

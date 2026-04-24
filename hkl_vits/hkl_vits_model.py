@@ -5,10 +5,10 @@ import torch.nn as nn
 import math
 from typing import Tuple, Dict, Optional
 
-from grapheme_encoder import GraphemeEncoder
-from phoneme_encoder import PhonemeEncoder
-from fusion_layer import FusionLayer
-from prosody_encoder import ProsodyEncoder
+from .grapheme_encoder import GraphemeEncoder
+from .phoneme_encoder import PhonemeEncoder
+from .fusion_layer import FusionLayer
+from .prosody_encoder import ProsodyEncoder
 
 
 class PosteriorEncoder(nn.Module):

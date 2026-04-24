@@ -354,55 +354,66 @@ class HKLVITSEvaluator:
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Evaluate HKL-VITS model')
-    parser.add_argument(
-        '--config',
-        type=str,
-        default='configs/hkl_vits_config.json',
-        help='Config file path'
-    )
-    parser.add_argument(
-        '--checkpoint',
-        type=str,
-        required=True,
-        help='Checkpoint path'
-    )
-    parser.add_argument(
-        '--data_dir',
-        type=str,
-        required=True,
-        help='Test data directory'
-    )
-    parser.add_argument(
-        '--batch_size',
-        type=int,
-        default=32,
-        help='Batch size'
-    )
-    parser.add_argument(
-        '--output',
-        type=str,
-        default='evaluation_report.json',
-        help='Output report path'
-    )
-    parser.add_argument(
-        '--gpu',
-        type=int,
-        default=0,
-        help='GPU device ID'
-    )
+    # Load configuration
+    config_path = 'configs/hkl_vits_config.json'
     
-    args = parser.parse_args()
+    with open(config_path, 'r', encoding='utf-8') as f:
+        config = json.load(f)
     
-    device = f'cuda:{args.gpu}' if torch.cuda.is_available() else 'cpu'
+    # Get paths from config
+    data_dir = config['data']['dataset_path']
+    checkpoint_dir = config['logging']['checkpoint_dir']
+    
+    # Find latest checkpoint
+    checkpoint_path = Path(checkpoint_dir)
+    if not checkpoint_path.exists():
+        print(f"✗ Checkpoint directory not found: {checkpoint_dir}")
+        print(f"Please train a model first using: python training/train_hkl_vits.py")
+        sys.exit(1)
+    
+    checkpoints = sorted(checkpoint_path.glob('hkl_vits_epoch_*.pt'), 
+                        key=lambda p: int(p.stem.split('_')[-1]), 
+                        reverse=True)
+    
+    if not checkpoints:
+        print(f"✗ No checkpoints found in: {checkpoint_dir}")
+        print(f"Please train a model first using: python training/train_hkl_vits.py")
+        sys.exit(1)
+    
+    checkpoint = str(checkpoints[0])  # Use latest checkpoint
+    batch_size = config['training']['batch_size']
+    
+    # Verify dataset exists
+    if not os.path.exists(data_dir):
+        print(f"✗ Dataset not found at: {data_dir}")
+        print(f"Please update 'data.dataset_path' in {config_path}")
+        sys.exit(1)
+    
+    # Setup device
+    if torch.cuda.is_available():
+        device = 'cuda'
+        print(f"✓ Using GPU: {torch.cuda.get_device_name(0)}")
+    else:
+        device = 'cpu'
+        print("⚠ GPU not available, using CPU")
+    
+    print(f"\n{'='*60}")
+    print(f"Evaluation Configuration:")
+    print(f"{'='*60}")
+    print(f"Config: {config_path}")
+    print(f"Checkpoint: {checkpoint}")
+    print(f"Dataset: {data_dir}")
+    print(f"Batch Size: {batch_size}")
+    print(f"Device: {device}")
+    print(f"{'='*60}\n")
     
     # Create evaluator
-    evaluator = HKLVITSEvaluator(args.config, args.checkpoint, device=device)
+    evaluator = HKLVITSEvaluator(config_path, checkpoint, device=device)
     
     # Load data
     val_loader, _ = get_dataloaders(
-        args.data_dir,
-        batch_size=args.batch_size,
+        data_dir,
+        batch_size=batch_size,
         num_workers=0,
         train_split=0.0  # Use all data for evaluation
     )
@@ -410,8 +421,11 @@ def main():
     # Create loss function
     criterion = HKLVITSLoss()
     
-    # Evaluate
-    report = evaluator.generate_report(val_loader, criterion, save_path=args.output)
+    # Generate report
+    report_path = config['logging']['checkpoint_dir'].rstrip('/') + '/evaluation_report.json'
+    report = evaluator.generate_report(val_loader, criterion, save_path=report_path)
+    
+    print(f"\n✓ Evaluation complete! Report saved to: {report_path}")
 
 
 if __name__ == '__main__':
