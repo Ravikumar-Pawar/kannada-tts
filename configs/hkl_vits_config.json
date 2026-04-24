@@ -119,7 +119,7 @@
         "gamma": 0.9999
     },
     "data": {
-        "dataset_path": "path/to/dataset/",
+        "dataset_path": "data/kannada_tts_dataset",
         "wav_folder": "wav",
         "txt_folder": "txt",
         "max_audio_length": 50000,
