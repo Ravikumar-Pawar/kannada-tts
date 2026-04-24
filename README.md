@@ -577,6 +577,7 @@ optimizer = torch.optim.Adam([
 ## Performance
 
 Target Performance Metrics:
+
 - **MOS (Mean Opinion Score)**: > 4.0/5.0
 - **Naturalness**: > 85% confidence
 - **Intelligibility**: > 95% word accuracy
@@ -585,11 +586,13 @@ Target Performance Metrics:
 ## References
 
 ### Key Papers
+
 1. Glow-TTS: A Generative Flow for Text-to-Speech based on Generative Flow for Natural Language (Movalglava et al., ICML 2021)
 2. VITS: Conditional Variational Autoencoder with Adversarial Learning for End-to-End Text-to-Speech (Kim et al., ICML 2021)
 3. HiFi-GAN: Generative Adversarial Networks for Efficient and High Fidelity Speech Synthesis (Kong et al., NeurIPS 2020)
 
 ### Kannada Language Resources
+
 - Kannada Script: IS 13194 (Unicode 0C80-0CFF)
 - Kannada Phonemics: Unicode Kannada Block
 - Kannada Morphology: Agglutinative structure with suffixes
@@ -597,6 +600,7 @@ Target Performance Metrics:
 ## Contributing
 
 We welcome contributions! Please:
+
 1. Fork the repository
 2. Create a feature branch
 3. Commit changes
@@ -629,18 +633,21 @@ If you use HKL-VITS in your research, please cite:
 ## Troubleshooting
 
 ### Out of Memory (OOM)
+
 - Reduce `batch_size` in config
 - Reduce `max_audio_length`
 - Use gradient accumulation
 - Move to larger GPU
 
 ### Poor Quality Audio
+
 - Check data preparation (noise, artifacts)
 - Increase training epochs
 - Verify loss convergence
 - Tune loss weights
 
 ### Slow Inference
+
 - Use GPU (set `device='cuda'`)
 - Reduce sequence length
 - Use FP16 precision (mixed_precision: true)
@@ -648,6 +655,7 @@ If you use HKL-VITS in your research, please cite:
 ## Changelog
 
 ### v1.0.0 (2024-03-11)
+
 - Initial release
 - Grapheme and Phoneme encoders
 - Prosody conditioning

@@ -1,6 +1,7 @@
 # HKL-VITS Implementation Review and Corrections Summary
 
 ## Project Overview
+
 This is a review and correction of the **HKL-VITS: Hybrid Linguistic-Enhanced VITS for Kannada Text-to-Speech** system implementation based on the comprehensive project report (Project_Report_HKL_VITS.txt).
 
 ## Implementation Status: ✓ CORRECTED AND PRODUCTION-READY
@@ -8,10 +9,12 @@ This is a review and correction of the **HKL-VITS: Hybrid Linguistic-Enhanced VI
 ---
 
 ## 1. CORRECTIONS MADE TO KANNADA G2P CONVERTER
+
 **File:** `hkl_vits/kannada_g2p.py`
 
-### Issues Fixed:
-1. **Halant (Virama) Handling**: The converter was not properly handling the halant character (्) which indicates a consonant without inherent vowel. 
+### Issues Fixed
+
+1. **Halant (Virama) Handling**: The converter was not properly handling the halant character (्) which indicates a consonant without inherent vowel.
    - **Fix**: Added explicit check for halant (्) before vowel modifier, properly removes inherent 'a' vowel
 
 2. **Vowel Modifier (Matra) Processing**: Incorrect logic when combining consonant with vowel modifier
@@ -21,6 +24,7 @@ This is a review and correction of the **HKL-VITS: Hybrid Linguistic-Enhanced VI
    - **Fix**: Simplified logic to always include inherent 'a' by default, explicitly remove when halant present
 
 ### Updated Code:
+
 - Proper handling of standalone vowels
 - Correct processing of consonants with matras
 - Correct handling of special marks (anusvara,visarga)
@@ -29,19 +33,22 @@ This is a review and correction of the **HKL-VITS: Hybrid Linguistic-Enhanced VI
 ---
 
 ## 2. DATASET LOADER ENHANCEMENTS
+
 **File:** `hkl_vits/dataset_loader.py`
 
 ### Issues Fixed:
+
 1. **F0 Extraction Robustness**: Simple YIN algorithm could produce NaN values
    - **Fix**: Implemented PYIN algorithm with fallback to YIN, proper NaN handling
-   
+
 2. **Feature Alignment**: Pitch and energy arrays might not align with mel-spectrogram length
    - **Fix**: Added interpolation to align all features to mel-spectrogram time dimension
-   
+
 3. **Batch Collation**: Missing proper padding and batching for variable-length sequences
    - **Fix**: Implemented comprehensive collate_fn with proper masking for padding
 
 ### New Features Added:
+
 - Enhanced pitch extraction with NaN handling
 - Dynamic feature alignment and interpolation
 - Proper batch collation with variable-length support
@@ -50,9 +57,11 @@ This is a review and correction of the **HKL-VITS: Hybrid Linguistic-Enhanced VI
 ---
 
 ## 3. LOSS FUNCTIONS
+
 **File:** `hkl_vits/loss_functions.py`
 
 ### Implemented Components:
+
 1. **Multi-Objective Loss** (HKLVITSLoss):
    - Reconstruction loss: L1 between predicted and target mel-spectrograms
    - KL divergence loss: VAE latent space regularization
@@ -69,6 +78,7 @@ This is a review and correction of the **HKL-VITS: Hybrid Linguistic-Enhanced VI
    - Same loss type options as discriminator
 
 ### Loss Weight Configuration:
+
 ```
 reconstruction: 1.0  (primary speaker quality)
 kl_divergence:  0.1  (latent regularization)
