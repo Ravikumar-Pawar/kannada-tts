@@ -9,9 +9,11 @@ Your Kannada HKL-VITS project has been comprehensively reviewed, enhanced, and p
 ## 📝 Files Created (5 Core Components)
 
 ### 1. **`main.py`** - Main Training Entry Point ⭐ PRIMARY FILE
+
 **Location**: `c:\Users\techk\Desktop\saniya\kannada-hkl-vits\main.py`
 
 **What It Does**:
+
 - Complete training pipeline in one command
 - Automatic GPU/CPU detection
 - Dataset validation and verification
@@ -21,6 +23,7 @@ Your Kannada HKL-VITS project has been comprehensively reviewed, enhanced, and p
 - Training progress monitoring
 
 **How to Use**:
+
 ```bash
 python main.py                                # Standard training
 python main.py --device cuda:0                # Specific GPU  
@@ -28,6 +31,7 @@ python main.py --resume models/checkpoints/*.pt # Resume training
 ```
 
 **Key Feature**: Models are saved to `models/final/hkl_vits_YYYYMMDD_HHMMSS/` with:
+
 - `config.json` - Full architecture
 - `model.pt` - Trained weights
 - `metadata.json` - Information
@@ -37,6 +41,7 @@ python main.py --resume models/checkpoints/*.pt # Resume training
 ---
 
 ### 2. **`quick_start_training.py`** - Interactive Guide
+
 **Location**: `c:\Users\techk\Desktop\saniya\kannada-hkl-vits\quick_start_training.py`
 
 **What It Does**:
