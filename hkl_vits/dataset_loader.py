@@ -113,7 +113,7 @@ class KannadaTTSDataset(Dataset):
         
         # Trim silence
         if self.trim_silence:
-            waveform, _ = torchaudio.functional.vad(waveform, self.sample_rate)
+            waveform = torchaudio.functional.vad(waveform, self.sample_rate)
         
         # Check length constraints
         if waveform.shape[1] < self.min_audio_length:
