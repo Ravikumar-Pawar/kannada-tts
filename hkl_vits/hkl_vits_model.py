@@ -128,7 +128,7 @@ class Generator(nn.Module):
         # Final layers
         self.post_conv = nn.Sequential(
             nn.LeakyReLU(0.1),
-            nn.Conv1d(64, 1, 7, padding=3),
+            nn.Conv1d(32, 1, 7, padding=3),
             nn.Tanh()
         )
     
